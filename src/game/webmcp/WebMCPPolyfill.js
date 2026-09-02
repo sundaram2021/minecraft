@@ -62,6 +62,10 @@ export class ModelContextPolyfill extends WebMCPEventTarget {
       throw new Error('[WebMCP] registerTool requires a tool definition with a valid name string.');
     }
 
+    if (typeof toolDef.execute !== 'function') {
+      throw new Error(`[WebMCP] registerTool requires an execute function for tool "${toolDef.name}".`);
+    }
+
     const tool = {
       name: toolDef.name,
       title: toolDef.title || toolDef.name,
@@ -75,9 +79,17 @@ export class ModelContextPolyfill extends WebMCPEventTarget {
     this._tools.set(tool.name, tool);
 
     if (options.signal) {
-      options.signal.addEventListener('abort', () => {
+      if (options.signal.aborted) {
         this.unregisterTool(tool.name);
-      });
+        return;
+      }
+      options.signal.addEventListener(
+        'abort',
+        () => {
+          this.unregisterTool(tool.name);
+        },
+        { once: true }
+      );
     }
 
     this.dispatchEvent(new CustomEvent('toolchange', { detail: { action: 'register', toolName: tool.name } }));
@@ -176,8 +188,15 @@ export function setupWebMCP() {
     }
   }
 
+  // Preserve existing global bridge if already defined (e.g. HMR or multiple Game instances)
+  if (window.minecraftWebMCP) {
+    window.minecraftWebMCP.modelContext = modelContext;
+    window.webmcp = window.minecraftWebMCP;
+    return modelContext;
+  }
+
   // Global bridge for agent extensions, developer console, or iframe postMessage
-  window.minecraftWebMCP = {
+  const bridge = {
     modelContext,
     async getTools() {
       return modelContext.getTools();
@@ -190,8 +209,8 @@ export function setupWebMCP() {
     },
   };
 
-  // Standard alias
-  window.webmcp = window.minecraftWebMCP;
+  window.minecraftWebMCP = bridge;
+  window.webmcp = bridge;
 
   return modelContext;
 }

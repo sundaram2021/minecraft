@@ -645,6 +645,9 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
       const cx = Math.round(x !== undefined ? x : game.player.physics.position.x);
       const cy = Math.round(y !== undefined ? y : game.player.physics.position.y);
       const cz = Math.round(z !== undefined ? z : game.player.physics.position.z);
+      const rad = Math.max(0, Math.min(radius || 0, 5));
+
+      ensureChunksLoaded(cx - rad - 1, cx + rad + 1, cz - rad - 1, cz + rad + 1);
 
       if (!radius || radius <= 0) {
         const bId = game.chunkManager.getBlock(cx, cy, cz);
@@ -747,6 +750,7 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
         bz = hit.blockPos.z;
       }
 
+      ensureChunksLoaded(bx - 1, bx + 1, bz - 1, bz + 1);
       const currentId = game.chunkManager.getBlock(bx, by, bz);
       if (currentId === BLOCKS.AIR) {
         return { success: false, message: 'Target is already AIR.' };
