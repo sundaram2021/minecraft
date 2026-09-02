@@ -29,7 +29,9 @@ export class InputManager {
     this.onDebugToggle = null;     // 'F3' key
     this.onPauseToggle = null;     // 'Esc' key
     this.onHotbarSelect = null;    // Numbers 1-9 & Mouse wheel
-    this.onFlyToggle = null;       // Double space in creative
+    this.onToolCycle = null;       // Shift + left/right arrows
+    this.onFlyToggle = null;       // Double space or F in creative
+    this.onBuildMenuToggle = null;  // B key
     this.onLeftClick = null;
     this.onRightClick = null;
     this.onMiddleClick = null;
@@ -51,6 +53,11 @@ export class InputManager {
 
     document.addEventListener('pointerlockchange', () => {
       this.isPointerLocked = (document.pointerLockElement === this.domElement);
+      if (!this.isPointerLocked) this.resetTransientState();
+    });
+    window.addEventListener('blur', () => this.resetTransientState());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.resetTransientState();
     });
   }
 
@@ -73,6 +80,13 @@ export class InputManager {
         document.exitPointerLock();
       }
     } catch (e) {}
+  }
+
+  resetTransientState() {
+    Object.keys(this.keys).forEach((key) => { this.keys[key] = false; });
+    Object.keys(this.mouseButtons).forEach((button) => { this.mouseButtons[button] = false; });
+    this.mouseDeltaX = 0;
+    this.mouseDeltaY = 0;
   }
 
   handleKeyDown(e) {
@@ -103,10 +117,24 @@ export class InputManager {
       return;
     }
 
+    // Tool cycle: Shift + left/right arrow changes the selected tool.
+    if (e.shiftKey && (code === 'ArrowLeft' || code === 'ArrowRight')) {
+      e.preventDefault();
+      if (this.onToolCycle) this.onToolCycle(code === 'ArrowRight' ? 1 : -1);
+      return;
+    }
+
     // Hotbar keys 1-9
     if (e.key >= '1' && e.key <= '9') {
       const slotIndex = parseInt(e.key, 10) - 1;
       if (this.onHotbarSelect) this.onHotbarSelect(slotIndex);
+      return;
+    }
+
+    // Explicit flight toggle for keyboard layouts where double-space is unreliable.
+    if (code === 'KeyF') {
+      e.preventDefault();
+      if (this.onFlyToggle) this.onFlyToggle();
       return;
     }
 
@@ -150,7 +178,11 @@ export class InputManager {
     // UI owns clicks while the canvas is not locked. Never steal a modal click
     // by requesting pointer lock from a document-level mouse listener.
     if (!this.isPointerLocked) {
-      if (e.target === this.domElement) this.requestPointerLock();
+      if (e.target === this.domElement) {
+        this.requestPointerLock();
+        // Preserve the first gameplay click so right-click building works immediately.
+        if (e.button === 2 && this.onRightClick) this.onRightClick();
+      }
       return;
     }
 

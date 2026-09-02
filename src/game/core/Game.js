@@ -72,6 +72,8 @@ export class Game {
     this.miningTarget = null;
     this.miningProgress = 0;
     this.miningTimer = 0;
+    this.attackCooldown = 0;
+    this.structureBuildTimer = null;
 
     // Performance Stats
     this.fps = 60;
@@ -174,7 +176,16 @@ export class Game {
     };
 
     // Hotbar selection
-    this.inputManager.onHotbarSelect = (indexOrDelta, isRelative = false) => {
+    this.inputManager.onToolCycle = (delta) => {
+    let next = (this.player.selectedHotbarIndex + delta) % 9;
+    if (next < 0) next += 9;
+    this.player.selectedHotbarIndex = next;
+    this.handViewModel.updateHeldItem(this.player.getSelectedSlot());
+    sound.playClick();
+    this.broadcastUI();
+  };
+
+  this.inputManager.onHotbarSelect = (indexOrDelta, isRelative = false) => {
       if (isRelative) {
         let newIdx = (this.player.selectedHotbarIndex + indexOrDelta) % 9;
         if (newIdx < 0) newIdx += 9;
@@ -191,6 +202,8 @@ export class Game {
       if (this.player.gameMode === 'creative') {
         this.player.physics.isFlying = !this.player.physics.isFlying;
         this.player.physics.velocity.set(0, 0, 0);
+        this.player.physics.onGround = false;
+        this.broadcastUI();
       }
     };
 
@@ -342,6 +355,7 @@ export class Game {
 
   // Mining / Block Breaking System
   handleMining(dt) {
+    this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     if (!this.inputManager.mouseButtons.left || this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) {
       this.miningProgress = 0;
       this.miningTarget = null;
@@ -353,9 +367,10 @@ export class Game {
     const forward = this.cameraController.getForwardVector();
 
     // 1. Check mob hit (Melee attack)
-    const hitMob = this.mobManager.hitMob(eyePos, forward, 7);
+    const hitMob = this.attackCooldown <= 0 ? this.mobManager.hitMob(eyePos, forward, 7) : null;
     if (hitMob) {
-      sound.playPlayerHurt();
+      this.attackCooldown = 0.42;
+      sound.playToolSwing();
       this.handViewModel.triggerSwing();
       return;
     }
@@ -405,7 +420,8 @@ export class Game {
       }
 
       const breakTime = Math.max(0.05, (def.hardness * 1.5) / toolSpeed);
-      this.miningProgress += dt / breakTime;
+      // Click-to-act remains responsive while held mining is twice as fast.
+      this.miningProgress += (dt * 2) / breakTime;
 
       this.raycaster.updateTarget(hit, this.miningProgress);
 
@@ -597,12 +613,16 @@ export class Game {
       return { targetX, targetY, targetZ, count: blocks.length };
     }
 
+    // Cancel any previous build before starting another one.
+    if (this.structureBuildTimer) clearInterval(this.structureBuildTimer);
+
     // Smooth progressive construction with SFX and particle bursts
     let index = 0;
     const batchSize = 12;
-    const interval = setInterval(() => {
+    this.structureBuildTimer = setInterval(() => {
       if (index >= blocks.length) {
-        clearInterval(interval);
+        clearInterval(this.structureBuildTimer);
+        this.structureBuildTimer = null;
         sound.playLevelUp?.();
         this.broadcastUI();
         return;

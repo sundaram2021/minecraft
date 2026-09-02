@@ -9,7 +9,8 @@ export function PauseMenu({ game, onResume, onUpdate }) {
   const [masterVol, setMasterVol] = useState(Math.round(sound.masterVolume * 100));
   const [sfxVol, setSfxVol] = useState(Math.round(sound.sfxVolume * 100));
   const [musicVol, setMusicVol] = useState(Math.round(sound.musicVolume * 100));
-  const [audioEnabled, setAudioEnabled] = useState(!sound.muted);
+  const [ambientEnabled, setAmbientEnabled] = useState(sound.ambientEnabled);
+  const [actionEnabled, setActionEnabled] = useState(sound.actionEnabled);
   const [gameMode, setGameMode] = useState(game.player.gameMode);
   const [headBob, setHeadBob] = useState(game.cameraController.enableBobbing);
   const [saveStatus, setSaveStatus] = useState('');
@@ -87,6 +88,10 @@ export function PauseMenu({ game, onResume, onUpdate }) {
               onClick={() => {
                 const nextMode = gameMode === 'survival' ? 'creative' : 'survival';
                 game.player.gameMode = nextMode;
+                if (nextMode !== 'creative') {
+                  game.player.physics.isFlying = false;
+                  game.player.physics.velocity.y = 0;
+                }
                 setGameMode(nextMode);
                 onUpdate();
               }}
@@ -161,13 +166,10 @@ export function PauseMenu({ game, onResume, onUpdate }) {
           </div>
 
           {/* Audio Volume Sliders */}
-          <button
-            onClick={() => { const next = !audioEnabled; setAudioEnabled(next); sound.setMuted(!next); }}
-            aria-pressed={audioEnabled}
-            className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333] text-xs font-bold"
-          >
-            <span>Audio System</span><span className={audioEnabled ? 'text-green-300' : 'text-red-300'}>{audioEnabled ? 'ENABLED' : 'OFF BY DEFAULT'}</span>
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => { const next = !ambientEnabled; setAmbientEnabled(next); sound.setAmbientEnabled(next); }} aria-pressed={ambientEnabled} className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333] text-xs font-bold"><span>Ambient Sound</span><span className={ambientEnabled ? 'text-green-300' : 'text-red-300'}>{ambientEnabled ? 'ON' : 'OFF'}</span></button>
+            <button onClick={() => { const next = !actionEnabled; setActionEnabled(next); sound.setActionEnabled(next); }} aria-pressed={actionEnabled} className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333] text-xs font-bold"><span>Action Sounds</span><span className={actionEnabled ? 'text-green-300' : 'text-red-300'}>{actionEnabled ? 'ON' : 'OFF'}</span></button>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col bg-[#181818] p-2 border border-[#333333]">
               <div className="flex justify-between text-xs mb-1">

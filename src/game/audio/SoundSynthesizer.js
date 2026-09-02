@@ -11,11 +11,24 @@ export class SoundSynthesizer {
     this.masterCompressor = null;
     this.activeVoices = 0;
     this.maxVoices = 64;
-    this.muted = true;
+    this.muted = false;
+    this.actionEnabled = true;
+    this.ambientEnabled = true;
     this.musicPlaying = false;
     this.masterVolume = 0.55;
     this.sfxVolume = 0.45;
     this.musicVolume = 0.25;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = JSON.parse(window.localStorage.getItem('minecraft-audio-settings') || '{}');
+        this.muted = saved.muted ?? false;
+        this.actionEnabled = saved.actionEnabled ?? true;
+        this.ambientEnabled = saved.ambientEnabled ?? true;
+        this.masterVolume = saved.masterVolume ?? this.masterVolume;
+        this.sfxVolume = saved.sfxVolume ?? this.sfxVolume;
+        this.musicVolume = saved.musicVolume ?? this.musicVolume;
+      } catch {}
+    }
     this.lastVoiceAt = 0;
 
     this.stepVariation = 0;
@@ -44,16 +57,15 @@ export class SoundSynthesizer {
       this.sfxGain.gain.value = this.sfxVolume;
       this.sfxGain.connect(this.masterGain);
 
-      // Music Bus with gentle stereo warmth
+      // Ambient music is intentionally disabled; only action sounds are used.
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = this.musicVolume;
+      this.musicGain.gain.value = 0;
       this.musicGain.connect(this.masterGain);
 
       // Algorithmic Reverb Impulse for spatial depth
       this.initReverb();
 
-      // Start C418-inspired ambient generative soundtrack
-      this.startC418Soundtrack();
+      // No ambient soundtrack: gameplay feedback stays action-only.
     } catch (e) {
       console.warn('Web Audio API not supported or blocked', e);
     }
@@ -808,9 +820,34 @@ export class SoundSynthesizer {
     osc.stop(now + 0.06);
   }
 
+  persistSettings() {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('minecraft-audio-settings', JSON.stringify({
+      muted: this.muted,
+      actionEnabled: this.actionEnabled,
+      ambientEnabled: this.ambientEnabled,
+      masterVolume: this.masterVolume,
+      sfxVolume: this.sfxVolume,
+      musicVolume: this.musicVolume,
+    }));
+  }
+
+  setActionEnabled(enabled) {
+    this.actionEnabled = Boolean(enabled);
+    if (this.sfxGain) this.sfxGain.gain.value = this.actionEnabled ? this.sfxVolume : 0;
+    this.persistSettings();
+  }
+
+  setAmbientEnabled(enabled) {
+    this.ambientEnabled = Boolean(enabled);
+    if (this.musicGain) this.musicGain.gain.value = this.ambientEnabled ? this.musicVolume : 0;
+    this.persistSettings();
+  }
+
   setMuted(muted) {
     this.muted = Boolean(muted);
     if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
+    this.persistSettings();
   }
 
   setVolume(master, sfx, music) {
@@ -819,8 +856,9 @@ export class SoundSynthesizer {
     this.musicVolume = music;
 
     if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
-    if (this.sfxGain) this.sfxGain.gain.value = this.sfxVolume;
-    if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
+    if (this.sfxGain) this.sfxGain.gain.value = this.actionEnabled ? this.sfxVolume : 0;
+    if (this.musicGain) this.musicGain.gain.value = this.ambientEnabled ? this.musicVolume : 0;
+    this.persistSettings();
   }
 }
 

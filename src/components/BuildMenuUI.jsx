@@ -45,7 +45,10 @@ export function BuildMenuUI({ onBuild, onClose }) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-xl bg-[#282828] border-4 border-[#505050] shadow-2xl p-6 text-white"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-build-title"
+        className="relative mx-4 w-full max-w-2xl bg-[#202020] border-4 border-[#707070] shadow-2xl p-5 text-white"
         onClick={(e) => e.stopPropagation()}
         style={{
           boxShadow: 'inset -2px -2px 0 #181818, inset 2px 2px 0 #6e6e6e, 0 10px 25px rgba(0,0,0,0.8)',
@@ -57,7 +60,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
             <VoxelAsset type="tool" tone="gold" size={28} label="Build architect" />
             <div>
               <h2 className="text-xl font-black text-yellow-400 tracking-wider">
-                QUICK BUILD ARCHITECT
+                <span id="quick-build-title">QUICK BUILD</span>
               </h2>
               <p className="text-xs text-gray-400">
                 Choose a structure to build in front of you
@@ -81,7 +84,10 @@ export function BuildMenuUI({ onBuild, onClose }) {
             <div
               key={s.id}
               onClick={() => handleSelect(s.id)}
-              className="group relative flex items-start gap-4 p-3.5 bg-[#1b1b1b] hover:bg-[#232323] border-2 border-[#3c3c3c] hover:border-yellow-400 cursor-pointer transition-all active:scale-[0.99]"
+              tabIndex={0}
+              role="button"
+              onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleSelect(s.id); } }}
+              className="group relative flex items-start gap-4 p-3.5 bg-[#171717] hover:bg-[#242424] focus-visible:outline-2 focus-visible:outline-yellow-300 border-2 border-[#505050] hover:border-yellow-400 cursor-pointer transition-all active:translate-y-px"
             >
               <div className="text-3xl p-2 bg-[#2d2d2d] border border-white/10 group-hover:scale-110 transition-transform">
                 <VoxelAsset type="block" tone={s.id === 'pyramid' ? 'gold' : s.id === 'cottage' ? 'wood' : 'stone'} size={42} label={`${s.title} structure`} />
