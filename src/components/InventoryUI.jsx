@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ItemSlot } from './ItemSlot.jsx';
 import { CraftingManager } from '../game/crafting/CraftingManager.js';
 import { sound } from '../game/audio/SoundSynthesizer.js';
+import { VoxelAsset } from './VoxelAsset.jsx';
 
 export function InventoryUI({ player, onClose, onUpdate }) {
   const [craftGrid, setCraftGrid] = useState(new Array(4).fill(null));
@@ -173,15 +174,15 @@ export function InventoryUI({ player, onClose, onUpdate }) {
           {/* Armor Slots Column */}
           <div className="flex flex-col gap-1">
             <span className="text-[#3f3f3f] text-[10px] font-bold">Armor</span>
-            {['⛑️','🧥','👖','👢'].map((icon,i)=>(
-              <div key={i} className="w-10 h-10 bg-[#8b8b8b] border border-[#373737] flex items-center justify-center text-[10px] opacity-60">{icon}</div>
+            {['helmet','chest armor','leg armor','boots'].map((label,i)=>(
+              <div key={i} className="w-10 h-10 bg-[#8b8b8b] border border-[#373737] flex items-center justify-center text-[10px] opacity-75"><VoxelAsset type="armor" tone="stone" size={24} label={label} /></div>
             ))}
           </div>
           {/* Player Voxel Silhouette Box AAA */}
           <div className="w-24 h-32 bg-[#8b8b8b] border-2 border-[#373737] flex flex-col items-center justify-center text-gray-700 text-xs font-bold shadow-inner relative overflow-hidden">
             <div className="absolute inset-0 opacity-[0.08]" style={{ background: 'repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 6px)' }} />
-            <span className="text-3xl mb-1 drop-shadow">🧑</span>
-            <span>Player</span>
+            <VoxelAsset type="player" tone="teal" size={52} label="Player preview" />
+            <span>PLAYER</span>
             <span className="text-[9px] text-[#3f3f3f] mt-1">Survival</span>
           </div>
 

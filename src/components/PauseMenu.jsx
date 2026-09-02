@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as THREE from 'three';
 import { sound } from '../game/audio/SoundSynthesizer.js';
 import { worldStorage } from '../game/storage/WorldStorage.js';
 
@@ -8,6 +9,7 @@ export function PauseMenu({ game, onResume, onUpdate }) {
   const [masterVol, setMasterVol] = useState(Math.round(sound.masterVolume * 100));
   const [sfxVol, setSfxVol] = useState(Math.round(sound.sfxVolume * 100));
   const [musicVol, setMusicVol] = useState(Math.round(sound.musicVolume * 100));
+  const [audioEnabled, setAudioEnabled] = useState(!sound.muted);
   const [gameMode, setGameMode] = useState(game.player.gameMode);
   const [headBob, setHeadBob] = useState(game.cameraController.enableBobbing);
   const [saveStatus, setSaveStatus] = useState('');
@@ -159,6 +161,13 @@ export function PauseMenu({ game, onResume, onUpdate }) {
           </div>
 
           {/* Audio Volume Sliders */}
+          <button
+            onClick={() => { const next = !audioEnabled; setAudioEnabled(next); sound.setMuted(!next); }}
+            aria-pressed={audioEnabled}
+            className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333] text-xs font-bold"
+          >
+            <span>Audio System</span><span className={audioEnabled ? 'text-green-300' : 'text-red-300'}>{audioEnabled ? 'ENABLED' : 'OFF BY DEFAULT'}</span>
+          </button>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col bg-[#181818] p-2 border border-[#333333]">
               <div className="flex justify-between text-xs mb-1">
@@ -204,13 +213,13 @@ export function PauseMenu({ game, onResume, onUpdate }) {
               onClick={handleSave}
               className="py-1.5 bg-[#3a3a3a] hover:bg-[#4a4a4a] border border-white/20 text-xs font-bold"
             >
-              💾 Save World
+              SAVE WORLD
             </button>
             <button
               onClick={handleExport}
               className="py-1.5 bg-[#3a3a3a] hover:bg-[#4a4a4a] border border-white/20 text-xs font-bold"
             >
-              📤 Export JSON
+              EXPORT JSON
             </button>
           </div>
 
@@ -218,7 +227,7 @@ export function PauseMenu({ game, onResume, onUpdate }) {
           <div className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333]">
             <span className="text-xs text-gray-300">Import Save:</span>
             <label className="px-3 py-1 bg-[#3a3a3a] hover:bg-[#4a4a4a] border border-white/20 text-xs font-bold cursor-pointer">
-              📁 Choose File
+              CHOOSE SAVE FILE
               <input type="file" accept=".json" onChange={handleImport} className="hidden" />
             </label>
           </div>
@@ -232,7 +241,7 @@ export function PauseMenu({ game, onResume, onUpdate }) {
             }}
             className="py-1 bg-red-900/60 hover:bg-red-800 border border-red-500/30 text-xs font-bold text-red-200"
           >
-            🔄 Respawn at Surface
+            RESPAWN AT SURFACE
           </button>
         </div>
 

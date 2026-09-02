@@ -128,7 +128,7 @@ export class Game {
   setupInputHandlers() {
     // 'E' Key: Toggle Inventory
     this.inputManager.onInventoryToggle = () => {
-      if (this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
+      if (this.isBuildMenuOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
         this.closeModals();
         return;
       }
@@ -142,28 +142,25 @@ export class Game {
     };
 
     // 'B' Key: Toggle Quick Build Menu
-    this.inputManager.onBuildMenuToggle = () => {
-      if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) {
-        return;
-      }
-      this.isBuildMenuOpen = !this.isBuildMenuOpen;
-      if (this.isBuildMenuOpen) {
-        this.inputManager.exitPointerLock();
-      } else {
-        this.inputManager.requestPointerLock();
-      }
-      this.broadcastUI();
-    };
+    this.inputManager.onBuildMenuToggle = () => this.toggleBuildMenu();
 
-    // 'F3' Key: Toggle Debug
-    this.inputManager.onDebugToggle = () => {
+  // Public UI action: keep HUD button and keyboard shortcut on one path.
+  this.toggleBuildMenu = () => {
+    if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) return;
+    this.isBuildMenuOpen = !this.isBuildMenuOpen;
+    if (this.isBuildMenuOpen) this.inputManager.exitPointerLock();
+    this.broadcastUI();
+  };
+
+  // 'F3' Key: Toggle Debug
+  this.inputManager.onDebugToggle = () => {
       this.showDebug = !this.showDebug;
       this.broadcastUI();
     };
 
     // 'Esc' Key: Pause Menu
     this.inputManager.onPauseToggle = () => {
-      if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
+      if (this.isInventoryOpen || this.isBuildMenuOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
         this.closeModals();
         return;
       }

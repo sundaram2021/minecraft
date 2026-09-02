@@ -2,10 +2,12 @@ import React from 'react';
 import { itemAtlas } from '../game/crafting/ItemAtlas.js';
 import { textureAtlas } from '../game/world/TextureAtlas.js';
 import { getBlockDef } from '../game/world/Blocks.js';
+import { VoxelAsset } from './VoxelAsset.jsx';
 
 export function ItemSlot({ item, isSelected, onClick, onContextMenu, size = 44 }) {
   let iconSrc = null;
   let itemName = '';
+  let assetTone = 'stone';
 
   if (item) {
     if (typeof item.id === 'string') {
@@ -19,6 +21,7 @@ export function ItemSlot({ item, isSelected, onClick, onContextMenu, size = 44 }
         texKey = def.textures.top || def.textures.all || def.textures.side || 'dirt';
       }
       const uv = textureAtlas.getUV(texKey);
+      assetTone = texKey.includes('wood') ? 'wood' : texKey.includes('gold') ? 'gold' : 'stone';
       if (uv && textureAtlas.canvas) {
         // Extract tile dataUrl for clean UI rendering
         const temp = document.createElement('canvas');
@@ -59,13 +62,10 @@ export function ItemSlot({ item, isSelected, onClick, onContextMenu, size = 44 }
       }}
       title={itemName}
     >
-      {iconSrc && (
-        <img
-          src={iconSrc}
-          alt={itemName}
-          className="w-4/5 h-4/5 object-contain pointer-events-none drop-shadow-sm"
-          style={{ imageRendering: 'pixelated' }}
-        />
+      {iconSrc ? (
+        <img src={iconSrc} alt={itemName} className="w-4/5 h-4/5 object-contain pointer-events-none drop-shadow-sm" style={{ imageRendering: 'pixelated' }} />
+      ) : (
+        <VoxelAsset type={item?.durability ? 'tool' : 'block'} tone={assetTone} size={Math.round(size * 0.68)} label={itemName || 'Empty slot'} />
       )}
 
       {/* Stack Count */}
