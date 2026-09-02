@@ -1,0 +1,28 @@
+src/App.jsx
+  h_004cd95484b0ae 10,107-114,122-128,142-152
+src/components/BuildMenuUI.jsx
+  h_004cd95484b0ae 1-122
+src/components/HUD.jsx
+  h_004cd95484b0ae 5,189-200,203
+src/game/core/CameraController.js
+  h_004cd95484b0ae 82-86
+src/game/core/Game.js
+  h_004cd95484b0ae 22,28,87,144-157,218,508,516-627
+src/game/core/InputManager.js
+  h_004cd95484b0ae 93-98
+src/game/world/ChunkManager.js
+  h_004cd95484b0ae 129-157
+src/game/world/StructureBuilder.js
+  h_004cd95484b0ae 1-287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "384838d17b3e854e3a25cf988505a723ef5e6d40",
+  "prompts": {},
+  "humans": {
+    "h_004cd95484b0ae": {
+      "author": "Sundaram Kumar Jha <jhasundaram@outlook.com>"
+    }
+  }
+}
