@@ -8,8 +8,6 @@ export function PauseMenu({ game, onResume, onUpdate }) {
   const [fov, setFov] = useState(game.cameraController.baseFov || 75);
   const [masterVol, setMasterVol] = useState(Math.round(sound.masterVolume * 100));
   const [sfxVol, setSfxVol] = useState(Math.round(sound.sfxVolume * 100));
-  const [musicVol, setMusicVol] = useState(Math.round(sound.musicVolume * 100));
-  const [ambientEnabled, setAmbientEnabled] = useState(sound.ambientEnabled);
   const [actionEnabled, setActionEnabled] = useState(sound.actionEnabled);
   const [gameMode, setGameMode] = useState(game.player.gameMode);
   const [headBob, setHeadBob] = useState(game.cameraController.enableBobbing);
@@ -165,9 +163,8 @@ export function PauseMenu({ game, onResume, onUpdate }) {
             />
           </div>
 
-          {/* Audio Volume Sliders */}
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => { const next = !ambientEnabled; setAmbientEnabled(next); sound.setAmbientEnabled(next); }} aria-pressed={ambientEnabled} className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333] text-xs font-bold"><span>Ambient Sound</span><span className={ambientEnabled ? 'text-green-300' : 'text-red-300'}>{ambientEnabled ? 'ON' : 'OFF'}</span></button>
+          {/* Action audio controls only; ambient audio is intentionally removed. */}
+          <div className="flex flex-col gap-2">
             <button onClick={() => { const next = !actionEnabled; setActionEnabled(next); sound.setActionEnabled(next); }} aria-pressed={actionEnabled} className="flex items-center justify-between bg-[#181818] p-2 border border-[#333333] text-xs font-bold"><span>Action Sounds</span><span className={actionEnabled ? 'text-green-300' : 'text-red-300'}>{actionEnabled ? 'ON' : 'OFF'}</span></button>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -185,24 +182,6 @@ export function PauseMenu({ game, onResume, onUpdate }) {
                   const val = parseInt(e.target.value, 10);
                   setSfxVol(val);
                   sound.setVolume(masterVol / 100, val / 100, musicVol / 100);
-                }}
-                className="accent-yellow-400 cursor-pointer"
-              />
-            </div>
-            <div className="flex flex-col bg-[#181818] p-2 border border-[#333333]">
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-gray-300">Music Vol:</span>
-                <span className="text-yellow-400 font-bold">{musicVol}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={musicVol}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  setMusicVol(val);
-                  sound.setVolume(masterVol / 100, sfxVol / 100, val / 100);
                 }}
                 className="accent-yellow-400 cursor-pointer"
               />
