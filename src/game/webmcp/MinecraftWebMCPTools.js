@@ -1,15 +1,6 @@
 import * as THREE from 'three';
 import { BLOCKS, getBlockDef } from '../world/Blocks.js';
 import { sound } from '../audio/SoundSynthesizer.js';
-import {
-  OPENAI_LOGO_MATRIX,
-  CREEPER_FACE_MATRIX,
-  HEART_MATRIX,
-  SWORD_MATRIX,
-  STAR_MATRIX,
-  DEFAULT_PALETTES,
-  matrixToVoxelBlocks,
-} from './VoxelArtPresets.js';
 
 /**
  * Helper to resolve block ID from name (string) or number.
@@ -903,8 +894,8 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
 
   await modelContext.registerTool({
     name: 'set_blocks_batch',
-    title: 'Batch Place Blocks',
-    description: 'Places multiple blocks simultaneously in one atomic call. Extremely fast for structures and custom patterns.',
+    title: 'Batch / Progressive Block Builder',
+    description: 'Places multiple blocks. Supports animated: true and delayMs (e.g. 20-50ms) so players can watch the AI construct structures in real time block-by-block with sounds, or animated: false for instant placement.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -920,12 +911,22 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
             },
             required: ['x', 'y', 'z', 'block'],
           },
-          description: 'Array of block descriptors to set.',
+          description: 'Array of block coordinate and type descriptors: [{ x, y, z, block }].',
+        },
+        animated: {
+          type: 'boolean',
+          default: false,
+          description: 'If true, places blocks progressively over time with real-time sounds so players see the AI building.',
+        },
+        delayMs: {
+          type: 'number',
+          default: 25,
+          description: 'Delay between block placements in milliseconds if animated is true (default 25ms).',
         },
       },
       required: ['blocks'],
     },
-    execute: async ({ blocks }) => {
+    execute: async ({ blocks, animated = false, delayMs = 25 }) => {
       if (!Array.isArray(blocks) || blocks.length === 0) {
         return { success: false, message: 'Blocks array is empty.' };
       }
@@ -950,12 +951,33 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
       }
 
       ensureChunksLoaded(minX, maxX, minZ, maxZ);
+
+      if (animated && batchToSet.length > 0) {
+        const stepDelay = Math.max(5, Math.min(delayMs || 25, 500));
+        let count = 0;
+
+        for (const item of batchToSet) {
+          game.chunkManager.setBlock(item.x, item.y, item.z, item.blockId);
+          if (count % 2 === 0) {
+            const def = getBlockDef(item.blockId);
+            sound.playBlockPlace(def.sound || 'stone');
+          }
+          count++;
+          if (stepDelay > 0) {
+            await new Promise((resolve) => setTimeout(resolve, stepDelay));
+          }
+        }
+        pushUndoBatch(undoBatch);
+        game.broadcastUI();
+        return { success: true, count: batchToSet.length, mode: 'animated', delayMs: stepDelay };
+      }
+
       game.chunkManager.setBlocksBatch(batchToSet);
       pushUndoBatch(undoBatch);
       sound.playBlockPlace('stone');
       game.broadcastUI();
 
-      return { success: true, count: batchToSet.length };
+      return { success: true, count: batchToSet.length, mode: 'instant' };
     },
   });
 
@@ -1189,162 +1211,10 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
     },
   });
 
-  // -------------------------------------------------------------
-  // 6. SPECIALIZED VOXEL ART & OPENAI LOGO BUILDER
-  // -------------------------------------------------------------
-
-  await modelContext.registerTool({
-    name: 'build_voxel_art',
-    title: 'Build Voxel Art / OpenAI Logo',
-    description: 'Constructs high-definition 2D/3D voxel pixel art and logos. Features built-in presets: "openai_logo" (the iconic OpenAI spiral knot emblem), "creeper_face", "heart", "sword", "star", or accepts custom 2D grid matrices of blocks.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        preset: {
-          type: 'string',
-          enum: ['openai_logo', 'creeper_face', 'heart', 'sword', 'star'],
-          description: 'Preset pixel art design. Use "openai_logo" to build the OpenAI logo.',
-        },
-        plane: {
-          type: 'string',
-          enum: ['vertical_xy', 'vertical_zy', 'horizontal_xz'],
-          default: 'vertical_xy',
-          description: 'Placement orientation: "vertical_xy" (facing south/north), "vertical_zy" (facing east/west), or "horizontal_xz" (flat on ground).',
-        },
-        scale: {
-          type: 'number',
-          default: 1,
-          description: 'Block scale multiplier per pixel (default 1).',
-        },
-        origin: {
-          type: 'object',
-          properties: {
-            x: { type: 'number' },
-            y: { type: 'number' },
-            z: { type: 'number' },
-          },
-          description: 'Placement origin coordinate. Defaults in front of player at scenic vantage.',
-        },
-        customMatrix: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Optional custom ASCII pixel rows if not using a preset.',
-        },
-        customPalette: {
-          type: 'object',
-          description: 'Mapping of character in customMatrix to block name (e.g. { "W": "white_wool", "B": "black_wool" }).',
-        },
-      },
-    },
-    execute: async ({ preset = 'openai_logo', plane = 'vertical_xy', scale = 1, origin, customMatrix, customPalette }) => {
-      let matrix = customMatrix;
-      let palette = {};
-
-      if (customPalette) {
-        for (const [char, blk] of Object.entries(customPalette)) {
-          palette[char] = resolveBlockId(blk);
-        }
-      }
-
-      if (!matrix) {
-        if (preset === 'openai_logo') {
-          matrix = OPENAI_LOGO_MATRIX;
-          palette = DEFAULT_PALETTES.openai_logo;
-        } else if (preset === 'creeper_face') {
-          matrix = CREEPER_FACE_MATRIX;
-          palette = DEFAULT_PALETTES.creeper_face;
-        } else if (preset === 'heart') {
-          matrix = HEART_MATRIX;
-          palette = DEFAULT_PALETTES.heart;
-        } else if (preset === 'sword') {
-          matrix = SWORD_MATRIX;
-          palette = DEFAULT_PALETTES.sword;
-        } else if (preset === 'star') {
-          matrix = STAR_MATRIX;
-          palette = DEFAULT_PALETTES.star;
-        } else {
-          matrix = OPENAI_LOGO_MATRIX;
-          palette = DEFAULT_PALETTES.openai_logo;
-        }
-      }
-
-      // Calculate scenic placement in front of player if origin not provided
-      let ox = origin?.x, oy = origin?.y, oz = origin?.z;
-      if (ox === undefined || oy === undefined || oz === undefined) {
-        const fwd = game.cameraController.getForwardVector();
-        const dist = Math.max(10, Math.floor(matrix.length * 0.75));
-        ox = Math.round(game.player.physics.position.x + fwd.x * dist);
-        oz = Math.round(game.player.physics.position.z + fwd.z * dist);
-        const gh = game.worldGen.getHeight(ox, oz);
-        oy = Math.max(gh + 1, Math.round(game.player.physics.position.y));
-      }
-
-      // Convert matrix to world voxel blocks
-      const voxelBlocks = matrixToVoxelBlocks(matrix, palette, { x: ox, y: oy, z: oz }, plane, Math.max(1, Math.floor(scale || 1)));
-
-      // Ensure chunks are loaded
-      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-      for (const b of voxelBlocks) {
-        minX = Math.min(minX, b.x);
-        maxX = Math.max(maxX, b.x);
-        minZ = Math.min(minZ, b.z);
-        maxZ = Math.max(maxZ, b.z);
-      }
-      ensureChunksLoaded(minX, maxX, minZ, maxZ);
-
-      // Build support base under vertical pixel art so it doesn't float
-      if (plane !== 'horizontal_xz') {
-        const baseWidth = Math.abs(maxX - minX) + 4;
-        for (let dx = -Math.floor(baseWidth / 2); dx <= Math.floor(baseWidth / 2); dx++) {
-          const bx = ox + dx;
-          const bz = oz;
-          const ground = game.worldGen.getHeight(bx, bz);
-          for (let y = ground; y < oy; y++) {
-            voxelBlocks.unshift({
-              x: bx,
-              y,
-              z: bz,
-              blockId: BLOCKS.QUARTZ_BLOCK || BLOCKS.STONE_BRICKS,
-              sound: 'stone',
-            });
-          }
-        }
-      }
-
-      // Capture undo history
-      const undoBatch = voxelBlocks.map((b) => ({
-        x: b.x,
-        y: b.y,
-        z: b.z,
-        oldBlockId: game.chunkManager.getBlock(b.x, b.y, b.z),
-        newBlockId: b.blockId,
-      }));
-
-      // Apply blocks in batch
-      game.chunkManager.setBlocksBatch(voxelBlocks);
-      pushUndoBatch(undoBatch);
-
-      // Particle poofs and sound
-      sound.playLevelUp?.();
-      game.particleEngine.spawnBlockBreakParticles(ox, oy + 4, oz, BLOCKS.WHITE_WOOL);
-      game.broadcastUI();
-
-      return {
-        success: true,
-        preset: preset || 'custom',
-        plane,
-        scale,
-        totalBlocksPlaced: voxelBlocks.length,
-        origin: { x: ox, y: oy, z: oz },
-        message: `Successfully constructed ${preset === 'openai_logo' ? 'the OpenAI Logo' : preset} with ${voxelBlocks.length} blocks!`,
-      };
-    },
-  });
-
   await modelContext.registerTool({
     name: 'undo_last_build',
     title: 'Undo Last Build Action',
-    description: 'Reverts the most recent building, placement, or voxel art batch, restoring previous blocks.',
+    description: 'Reverts the most recent building or placement batch, restoring previous blocks.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -1374,5 +1244,5 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
     },
   });
 
-  console.log('[WebMCP] Successfully registered all 24 Minecraft WebMCP tools!');
+  console.log('[WebMCP] Successfully registered all 23 core Minecraft WebMCP tools!');
 }

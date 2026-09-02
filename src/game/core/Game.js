@@ -89,7 +89,6 @@ export class Game {
     this.isFurnaceOpen = false;
     this.isChestOpen = false;
     this.isBuildMenuOpen = false;
-    this.isWebMCPOpen = false;
     this.modelContext = null;
     this.furnacePos = null;
     this.chestPos = null;
@@ -147,7 +146,7 @@ export class Game {
   setupInputHandlers() {
     // 'E' Key: Toggle Inventory
     this.inputManager.onInventoryToggle = () => {
-      if (this.isBuildMenuOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isWebMCPOpen) {
+      if (this.isBuildMenuOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
         this.closeModals();
         return;
       }
@@ -165,23 +164,9 @@ export class Game {
 
   // Public UI action: keep HUD button and keyboard shortcut on one path.
   this.toggleBuildMenu = () => {
-    if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused || this.isWebMCPOpen) return;
+    if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) return;
     this.isBuildMenuOpen = !this.isBuildMenuOpen;
     if (this.isBuildMenuOpen) this.inputManager.exitPointerLock();
-    this.broadcastUI();
-  };
-
-  // 'M' Key: Toggle WebMCP AI Overlay
-  this.inputManager.onWebMCPToggle = () => this.toggleWebMCP();
-
-  this.toggleWebMCP = () => {
-    if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused || this.isBuildMenuOpen) {
-      this.closeModals();
-      return;
-    }
-    this.isWebMCPOpen = !this.isWebMCPOpen;
-    if (this.isWebMCPOpen) this.inputManager.exitPointerLock();
-    else this.inputManager.requestPointerLock();
     this.broadcastUI();
   };
 
@@ -240,14 +225,13 @@ export class Game {
 
     // Left Click in air: tool whoosh & arm swing
     this.inputManager.onLeftClick = () => {
-      if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused || this.isWebMCPOpen) return;
+      if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) return;
       this.handViewModel.triggerSwing();
       sound.playToolSwing();
     };
 
     // Right Click: Block Place or Interact
     this.inputManager.onRightClick = () => {
-      if (this.isWebMCPOpen) return;
       this.handleRightClick();
     };
   }
@@ -258,7 +242,6 @@ export class Game {
     this.isFurnaceOpen = false;
     this.isChestOpen = false;
     this.isBuildMenuOpen = false;
-    this.isWebMCPOpen = false;
     this.furnacePos = null;
     this.chestPos = null;
     this.isPaused = false;
@@ -389,7 +372,7 @@ export class Game {
   // Mining / Block Breaking System
   handleMining(dt) {
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
-    if (!this.inputManager.mouseButtons.left || this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused || this.isWebMCPOpen) {
+    if (!this.inputManager.mouseButtons.left || this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) {
       this.miningProgress = 0;
       this.miningTarget = null;
       this.raycaster.updateTarget(null, 0);
@@ -552,7 +535,6 @@ export class Game {
       isFurnaceOpen: this.isFurnaceOpen,
       isChestOpen: this.isChestOpen,
       isBuildMenuOpen: this.isBuildMenuOpen,
-      isWebMCPOpen: this.isWebMCPOpen,
       furnacePos: this.furnacePos,
       chestPos: this.chestPos,
       showDebug: this.showDebug,
@@ -692,7 +674,7 @@ export class Game {
       this.broadcastUI();
     }
 
-    if (!this.isPaused && !this.isInventoryOpen && !this.isCraftingTableOpen && !this.isFurnaceOpen && !this.isChestOpen && !this.isWebMCPOpen) {
+    if (!this.isPaused && !this.isInventoryOpen && !this.isCraftingTableOpen && !this.isFurnaceOpen && !this.isChestOpen) {
       // 1. Mouse look
       const { dx, dy } = this.inputManager.consumeMouseDelta();
       this.cameraController.updateLook(dx, dy);
