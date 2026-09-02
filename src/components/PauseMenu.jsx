@@ -181,7 +181,7 @@ export function PauseMenu({ game, onResume, onUpdate }) {
                 onChange={(e) => {
                   const val = parseInt(e.target.value, 10);
                   setSfxVol(val);
-                  sound.setVolume(masterVol / 100, val / 100, musicVol / 100);
+                  sound.setVolume(masterVol / 100, val / 100, 0);
                 }}
                 className="accent-yellow-400 cursor-pointer"
               />

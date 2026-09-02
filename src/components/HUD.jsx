@@ -267,9 +267,6 @@ export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
                 }}
               >
                 <ItemSlot item={item} isSelected={false} onClick={() => onSlotSelect && onSlotSelect(idx)} size={40} />
-                {item && item.count > 1 && (
-                  <span className="absolute bottom-0 right-0.5 text-[11px] font-bold text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.9)]" style={{ fontFamily: "'Minecraft','Courier New',monospace", textShadow: '1px 1px 0 #000' }}>{item.count > 99 ? '99+' : item.count}</span>
-                )}
               </div>
             );
           })}
