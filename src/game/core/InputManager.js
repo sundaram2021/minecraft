@@ -90,6 +90,12 @@ export class InputManager {
       return;
     }
 
+    // Build Menu 'B'
+    if (code === 'KeyB') {
+      if (this.onBuildMenuToggle) this.onBuildMenuToggle();
+      return;
+    }
+
     // Pause / Escape
     if (code === 'Escape') {
       if (this.onPauseToggle) this.onPauseToggle();

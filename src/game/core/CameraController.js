@@ -79,8 +79,11 @@ export class CameraController {
       eyePos.y + bobY - crouchDrop,
       eyePos.z
     );
-    // subtle roll on strafe
-    this.camera.rotation.z = bobRoll;
+    // synchronize camera orientation with yaw, pitch, and bobRoll
+    this.euler.x = this.pitch;
+    this.euler.y = this.yaw;
+    this.euler.z = bobRoll;
+    this.camera.quaternion.setFromEuler(this.euler);
 
     // AAA Dynamic FOV: sprint warp 82°, sneaking 70°, water 62°, flying 85°
     let targetFov = this.baseFov;

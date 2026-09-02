@@ -7,6 +7,7 @@ import { FurnaceUI } from './components/FurnaceUI.jsx';
 import { ChestUI } from './components/ChestUI.jsx';
 import { PauseMenu } from './components/PauseMenu.jsx';
 import { DebugOverlay } from './components/DebugOverlay.jsx';
+import { BuildMenuUI } from './components/BuildMenuUI.jsx';
 import { sound } from './game/audio/SoundSynthesizer.js';
 
 export function App() {
@@ -103,7 +104,14 @@ export function App() {
               <p>📊 <strong className="text-white">F3:</strong> Debug  •  <strong className="text-white">Esc:</strong> Pause / Save</p>
             </div>
 
-            <button className="w-full py-3 bg-green-600 hover:bg-green-500 border-2 border-t-green-300 border-l-green-300 border-r-green-900 border-b-green-900 font-bold text-base tracking-wider shadow-lg animate-pulse">
+            <button
+              id="start-game-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStartGame();
+              }}
+              className="w-full py-3 bg-green-600 hover:bg-green-500 border-2 border-t-green-300 border-l-green-300 border-r-green-900 border-b-green-900 font-bold text-base tracking-wider shadow-lg animate-pulse"
+            >
               CLICK ANYWHERE TO PLAY
             </button>
           </div>
@@ -111,7 +119,13 @@ export function App() {
       )}
 
       {/* 3. In-Game HUD (Crosshair, Hearts, Food, Bubbles, Hotbar) */}
-      <HUD gameState={gameState} onSlotSelect={handleSlotSelect} />
+      <HUD
+        gameState={gameState}
+        onSlotSelect={handleSlotSelect}
+        onOpenBuildMenu={() => {
+          if (gameRef.current) gameRef.current.inputManager.onBuildMenuToggle?.();
+        }}
+      />
 
       {/* 4. F3 Debug Screen */}
       <DebugOverlay gameState={gameState} />
@@ -122,6 +136,17 @@ export function App() {
           player={gameRef.current.player}
           onClose={() => gameRef.current.closeModals()}
           onUpdate={() => gameRef.current.broadcastUI()}
+        />
+      )}
+
+      {/* 5b. Quick Build Architect Modal ('B') */}
+      {gameState.isBuildMenuOpen && gameRef.current && (
+        <BuildMenuUI
+          onBuild={(type) => {
+            gameRef.current.buildStructure(type);
+            gameRef.current.closeModals();
+          }}
+          onClose={() => gameRef.current.closeModals()}
         />
       )}
 

@@ -126,6 +126,35 @@ export class ChunkManager {
     return changed;
   }
 
+  // Efficient batch block placement with unified mesh rebuilds
+  setBlocksBatch(blockArray) {
+    const affectedChunks = new Set();
+    for (const b of blockArray) {
+      if (b.y < 0 || b.y >= WORLD_HEIGHT) continue;
+      const cx = Math.floor(b.x / 16);
+      const cz = Math.floor(b.z / 16);
+      let chunk = this.getChunk(cx, cz);
+      if (!chunk) {
+        chunk = this.loadChunk(cx, cz);
+      }
+      if (!chunk) continue;
+
+      const lx = ((b.x % 16) + 16) % 16;
+      const lz = ((b.z % 16) + 16) % 16;
+      const changed = chunk.setBlock(lx, b.y, lz, b.blockId);
+      if (changed) {
+        affectedChunks.add(chunk);
+        if (lx === 0 && chunk.neighbors.west) affectedChunks.add(chunk.neighbors.west);
+        if (lx === 15 && chunk.neighbors.east) affectedChunks.add(chunk.neighbors.east);
+        if (lz === 0 && chunk.neighbors.north) affectedChunks.add(chunk.neighbors.north);
+        if (lz === 15 && chunk.neighbors.south) affectedChunks.add(chunk.neighbors.south);
+      }
+    }
+    for (const chunk of affectedChunks) {
+      this.rebuildChunkMesh(chunk);
+    }
+  }
+
   // Re-link 4-way neighbors
   linkNeighbors(chunk) {
     const { cx, cz } = chunk;

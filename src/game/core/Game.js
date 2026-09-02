@@ -19,11 +19,13 @@ import { BLOCKS, getBlockDef } from '../world/Blocks.js';
 import { furnaceManager } from '../world/FurnaceManager.js';
 import { chestManager } from '../world/ChestManager.js';
 import { Weather } from '../world/Weather.js';
+import { StructureBuilder } from '../world/StructureBuilder.js';
 
 export class Game {
   constructor(canvasContainer, uiCallback) {
     this.container = canvasContainer;
     this.onUIUpdate = uiCallback; // Sends state changes to React HUD
+    window.game = this; // Expose globally for interactive control
 
     // Scene & Renderer Setup
     this.scene = new THREE.Scene();
@@ -82,6 +84,7 @@ export class Game {
     this.isCraftingTableOpen = false;
     this.isFurnaceOpen = false;
     this.isChestOpen = false;
+    this.isBuildMenuOpen = false;
     this.furnacePos = null;
     this.chestPos = null;
     this.showDebug = false;
@@ -131,6 +134,20 @@ export class Game {
       }
       this.isInventoryOpen = !this.isInventoryOpen;
       if (this.isInventoryOpen) {
+        this.inputManager.exitPointerLock();
+      } else {
+        this.inputManager.requestPointerLock();
+      }
+      this.broadcastUI();
+    };
+
+    // 'B' Key: Toggle Quick Build Menu
+    this.inputManager.onBuildMenuToggle = () => {
+      if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) {
+        return;
+      }
+      this.isBuildMenuOpen = !this.isBuildMenuOpen;
+      if (this.isBuildMenuOpen) {
         this.inputManager.exitPointerLock();
       } else {
         this.inputManager.requestPointerLock();
@@ -198,6 +215,7 @@ export class Game {
     this.isCraftingTableOpen = false;
     this.isFurnaceOpen = false;
     this.isChestOpen = false;
+    this.isBuildMenuOpen = false;
     this.furnacePos = null;
     this.chestPos = null;
     this.isPaused = false;
@@ -487,11 +505,124 @@ export class Game {
       isCraftingTableOpen: this.isCraftingTableOpen,
       isFurnaceOpen: this.isFurnaceOpen,
       isChestOpen: this.isChestOpen,
+      isBuildMenuOpen: this.isBuildMenuOpen,
       furnacePos: this.furnacePos,
       chestPos: this.chestPos,
       showDebug: this.showDebug,
       weather: this.weather.isRaining ? 'Rain' : this.weather.isSnowing ? 'Snow' : 'Clear',
     });
+  }
+
+  // Procedural Structure Construction with optional progressive timelapse animation
+  buildStructure(type = 'cottage', options = {}) {
+    let targetX, targetY, targetZ;
+    if (options.pos) {
+      targetX = Math.round(options.pos.x);
+      targetY = Math.round(options.pos.y);
+      targetZ = Math.round(options.pos.z);
+    } else {
+      const forward = this.cameraController.getForwardVector();
+      const dist = type === 'pyramid' ? 10 : 8;
+      targetX = Math.round(this.player.physics.position.x + forward.x * dist);
+      targetZ = Math.round(this.player.physics.position.z + forward.z * dist);
+      const gh = this.worldGen.getHeight(targetX, targetZ);
+      targetY = Math.max(gh, Math.round(this.player.physics.position.y) - 1);
+    }
+
+    let blocks = [];
+    if (type === 'watchtower' || type === 'tower') {
+      blocks = StructureBuilder.getWatchtowerBlocks(targetX, targetY, targetZ);
+    } else if (type === 'pyramid') {
+      blocks = StructureBuilder.getPyramidBlocks(targetX, targetY, targetZ);
+    } else {
+      blocks = StructureBuilder.getCottageBlocks(targetX, targetY, targetZ);
+    }
+
+    // Ensure chunks around target are loaded
+    const minCx = Math.floor((targetX - 16) / 16);
+    const maxCx = Math.floor((targetX + 16) / 16);
+    const minCz = Math.floor((targetZ - 16) / 16);
+    const maxCz = Math.floor((targetZ + 16) / 16);
+    for (let cz = minCz; cz <= maxCz; cz++) {
+      for (let cx = minCx; cx <= maxCx; cx++) {
+        this.chunkManager.loadChunk(cx, cz);
+      }
+    }
+
+    // Scenic camera positioning so the player can watch the whole build
+    if (options.adjustCamera !== false) {
+      const offsetDist = type === 'pyramid' ? 14 : 11;
+      const viewX = targetX;
+      const viewZ = targetZ + offsetDist;
+      const viewGroundY = this.worldGen.getHeight(viewX, viewZ);
+      const viewY = Math.max(targetY + 3.0, viewGroundY + 2.5);
+
+      // Clear space around player vantage
+      for (let dy = -1; dy <= 4; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          for (let dz = -2; dz <= 2; dz++) {
+            this.chunkManager.setBlock(viewX + dx, Math.floor(viewY + dy), viewZ + dz, BLOCKS.AIR);
+          }
+        }
+      }
+
+      // Clear line of sight between viewer and building so no hill obstructs view
+      for (let z = targetZ + 4; z <= viewZ; z++) {
+        for (let x = targetX - 3; x <= targetX + 3; x++) {
+          for (let y = Math.floor(targetY + 1); y <= Math.floor(viewY + 2); y++) {
+            this.chunkManager.setBlock(x, y, z, BLOCKS.AIR);
+          }
+        }
+      }
+
+      this.player.physics.position.set(viewX, viewY, viewZ);
+      this.player.physics.velocity.set(0, 0, 0);
+      this.player.physics.isFlying = true;
+
+      // Aim camera directly at the building facade
+      const eyeY = viewY + 1.62;
+      const dx = targetX - viewX;
+      const dy = (targetY + 3.2) - eyeY;
+      const dz = targetZ - viewZ;
+      const horizDist = Math.sqrt(dx * dx + dz * dz);
+      this.cameraController.yaw = Math.atan2(-dx, -dz);
+      this.cameraController.pitch = Math.atan2(dy, horizDist);
+      this.cameraController.euler.x = this.cameraController.pitch;
+      this.cameraController.euler.y = this.cameraController.yaw;
+      this.cameraController.euler.z = 0;
+      this.camera.quaternion.setFromEuler(this.cameraController.euler);
+    }
+
+    if (options.instant) {
+      this.chunkManager.setBlocksBatch(blocks);
+      sound.playBlockPlace('wood');
+      this.broadcastUI();
+      return { targetX, targetY, targetZ, count: blocks.length };
+    }
+
+    // Smooth progressive construction with SFX and particle bursts
+    let index = 0;
+    const batchSize = 12;
+    const interval = setInterval(() => {
+      if (index >= blocks.length) {
+        clearInterval(interval);
+        sound.playLevelUp?.();
+        this.broadcastUI();
+        return;
+      }
+      const batch = blocks.slice(index, index + batchSize);
+      this.chunkManager.setBlocksBatch(batch);
+      for (const b of batch) {
+        if (b.blockId !== BLOCKS.AIR) {
+          this.particleEngine.spawnBlockBreakParticles(b.x, b.y, b.z, b.blockId);
+        }
+      }
+      sound.playBlockPlace(batch[0]?.sound || 'wood');
+      this.handViewModel.triggerSwing();
+      index += batchSize;
+    }, 25);
+
+    return { targetX, targetY, targetZ, count: blocks.length };
   }
 
   // Main Game Loop

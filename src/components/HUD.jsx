@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ItemSlot } from './ItemSlot.jsx';
 import { getBlockDef } from '../game/world/Blocks.js';
 
-export function HUD({ gameState, onSlotSelect }) {
+export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
   const {
     health = 20,
     maxHealth = 20,
@@ -186,12 +186,21 @@ export function HUD({ gameState, onSlotSelect }) {
 
       {/* Top Header / Mode info (Hidden when F3 Debug is open) */}
       {!gameState?.showDebug && (
-        <div className="p-4 flex justify-between items-center">
-          <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">
-            Mode: <span className="text-yellow-400 uppercase font-bold">{gameMode}</span> (Double Space: Fly)
+        <div className="p-4 flex justify-between items-center pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">
+              Mode: <span className="text-yellow-400 uppercase font-bold">{gameMode}</span> (Double Space: Fly)
+            </div>
+            <button
+              onClick={onOpenBuildMenu}
+              className="bg-green-700/90 hover:bg-green-600 px-3 py-1 rounded text-white text-xs font-mono font-bold border border-green-400/40 shadow flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+              title="Open Quick Build Architect [B]"
+            >
+              <span>🏗️</span> [B] Quick Build
+            </button>
           </div>
           <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">
-            [E] Inventory • [F3] Debug • [Esc] Menu
+            [B] Build • [E] Inventory • [F3] Debug • [Esc] Menu
           </div>
         </div>
       )}
