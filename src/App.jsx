@@ -8,6 +8,7 @@ import { ChestUI } from './components/ChestUI.jsx';
 import { PauseMenu } from './components/PauseMenu.jsx';
 import { DebugOverlay } from './components/DebugOverlay.jsx';
 import { BuildMenuUI } from './components/BuildMenuUI.jsx';
+import { WebMCPOverlay } from './components/WebMCPOverlay.jsx';
 import { sound } from './game/audio/SoundSynthesizer.js';
 
 export function App() {
@@ -35,6 +36,7 @@ export function App() {
     isCraftingTableOpen: false,
     isFurnaceOpen: false,
     isChestOpen: false,
+    isWebMCPOpen: false,
     furnacePos: null,
     chestPos: null,
     showDebug: false,
@@ -101,6 +103,7 @@ export function App() {
               <p><span className="key-glyph">BUILD</span> <strong className="text-white">Right Click:</strong> Place / Eat / Open Crafting / Furnace / Chest / Hoe Farmland</p>
               <p><span className="key-glyph">PACK</span> <strong className="text-white">E:</strong> Inventory & 2x2 Crafting — 120+ Blocks, 14 Biomes</p>
               <p><span className="key-glyph">SLOTS</span> <strong className="text-white">1-9 / Wheel:</strong> Select a tool • <strong className="text-white">Shift + ← / →:</strong> Cycle tools</p>
+              <p><span className="key-glyph">AGENT</span> <strong className="text-white">M:</strong> WebMCP AI Agent Bridge & Tools (OpenAI Logo, etc.)</p>
               <p><span className="key-glyph">INFO</span> <strong className="text-white">F3:</strong> Debug  •  <strong className="text-white">Esc:</strong> Pause / Save</p>
             </div>
 
@@ -124,6 +127,9 @@ export function App() {
         onSlotSelect={handleSlotSelect}
         onOpenBuildMenu={() => {
           if (gameRef.current) gameRef.current.toggleBuildMenu?.();
+        }}
+        onOpenWebMCP={() => {
+          if (gameRef.current) gameRef.current.toggleWebMCP?.();
         }}
       />
 
@@ -185,6 +191,15 @@ export function App() {
           game={gameRef.current}
           onResume={() => gameRef.current.closeModals()}
           onUpdate={() => gameRef.current.broadcastUI()}
+        />
+      )}
+
+      {/* 8. WebMCP AI Agent Bridge Modal ('M') */}
+      {gameState.isWebMCPOpen && gameRef.current && (
+        <WebMCPOverlay
+          isOpen={gameState.isWebMCPOpen}
+          game={gameRef.current}
+          onClose={() => gameRef.current.closeModals()}
         />
       )}
     </div>

@@ -3,7 +3,7 @@ import { ItemSlot } from './ItemSlot.jsx';
 import { VoxelAsset } from './VoxelAsset.jsx';
 import { getBlockDef } from '../game/world/Blocks.js';
 
-export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
+export function HUD({ gameState, onSlotSelect, onOpenBuildMenu, onOpenWebMCP }) {
   const {
     health = 20,
     maxHealth = 20,
@@ -199,12 +199,21 @@ export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
               className="relative z-20 pointer-events-auto flex items-center gap-2 border-2 border-[#d7d7d7] border-t-[#ffffff] border-l-[#ffffff] border-r-[#555555] border-b-[#555555] bg-[#c6c6c6] px-3 py-1.5 text-[#202020] text-xs font-mono font-black tracking-wide shadow-[2px_2px_0_#111] cursor-pointer transition-transform hover:bg-[#dedede] focus-visible:outline-2 focus-visible:outline-yellow-300 active:translate-y-px"
               title="Open Quick Build Architect [B]"
               >
-              <VoxelAsset type="tool" tone="gold" size={20} label="Quick build" /> <span>[B] QUICK BUILD</span>
-
+              <VoxelAsset type="tool" tone="gold" size={20} label="Quick build" /> <span>[B] BUILD</span>
+            </button>
+            <button
+              onMouseDown={(event) => { event.stopPropagation(); onOpenWebMCP && onOpenWebMCP(); }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+              className="relative z-20 pointer-events-auto flex items-center gap-1.5 border-2 border-emerald-400 border-t-[#86efac] border-l-[#86efac] border-r-[#065f46] border-b-[#065f46] bg-emerald-900/90 px-3 py-1.5 text-emerald-200 text-xs font-mono font-black tracking-wide shadow-[2px_2px_0_#111] cursor-pointer transition-transform hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-emerald-300 active:translate-y-px"
+              title="Open WebMCP AI Agent Bridge & Inspector [M]"
+              >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>[M] WEBMCP AI</span>
             </button>
           </div>
           <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">
-            [B] Build • [E] Inventory • [F3] Debug • [Esc] Menu
+            [B] Build • [M] WebMCP • [E] Bag • [F3] Debug • [Esc] Menu
           </div>
         </div>
       )}

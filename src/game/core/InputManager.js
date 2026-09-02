@@ -32,6 +32,7 @@ export class InputManager {
     this.onToolCycle = null;       // Shift + left/right arrows
     this.onFlyToggle = null;       // Double space or F in creative
     this.onBuildMenuToggle = null;  // B key
+    this.onWebMCPToggle = null;    // M key: WebMCP AI overlay
     this.onLeftClick = null;
     this.onRightClick = null;
     this.onMiddleClick = null;
@@ -108,6 +109,12 @@ export class InputManager {
     // Build Menu 'B'
     if (code === 'KeyB') {
       if (this.onBuildMenuToggle) this.onBuildMenuToggle();
+      return;
+    }
+
+    // WebMCP AI Menu 'M'
+    if (code === 'KeyM') {
+      if (this.onWebMCPToggle) this.onWebMCPToggle();
       return;
     }
 
