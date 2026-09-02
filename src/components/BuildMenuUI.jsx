@@ -40,7 +40,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 select-none p-2 md:p-4"
       style={{ fontFamily: "'Minecraft', 'Courier New', monospace" }}
       onClick={onClose}
     >
@@ -48,18 +48,19 @@ export function BuildMenuUI({ onBuild, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="quick-build-title"
-        className="relative mx-4 w-full max-w-2xl bg-[#202020] border-4 border-[#707070] shadow-2xl p-5 text-white"
+        className="relative mx-2 w-full bg-[#111111] border-4 border-[#707070] shadow-2xl p-2 md:p-3 text-white"
         onClick={(e) => e.stopPropagation()}
         style={{
+          maxWidth: '1200px',
           boxShadow: 'inset -2px -2px 0 #181818, inset 2px 2px 0 #6e6e6e, 0 10px 25px rgba(0,0,0,0.8)',
         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-[#404040] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <VoxelAsset type="tool" tone="gold" size={28} label="Build architect" />
+          <div className="flex items-center gap-3">
+            <VoxelAsset type="tool" tone="gold" size={32} label="Build architect" />
             <div>
-              <h2 className="text-xl font-black text-yellow-400 tracking-wider">
+              <h2 className="text-2xl font-black text-yellow-400 tracking-wider">
                 <span id="quick-build-title">QUICK BUILD</span>
               </h2>
               <p className="text-xs text-gray-400">
@@ -79,7 +80,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
         </div>
 
         {/* Structure Cards */}
-        <div className="space-y-3">
+        <div className="flex flex-col gap-2">
           {structures.map((s) => (
             <div
               key={s.id}

@@ -100,7 +100,7 @@ export function App() {
               <p><span className="key-glyph">MINE</span> <strong className="text-white">Left Click:</strong> Mine + Attack (Shears on Sheep)</p>
               <p><span className="key-glyph">BUILD</span> <strong className="text-white">Right Click:</strong> Place / Eat / Open Crafting / Furnace / Chest / Hoe Farmland</p>
               <p><span className="key-glyph">PACK</span> <strong className="text-white">E:</strong> Inventory & 2x2 Crafting — 120+ Blocks, 14 Biomes</p>
-              <p><span className="key-glyph">SLOTS</span> <strong className="text-white">1-9 / Wheel:</strong> Hotbar + Weather & Structures</p>
+              <p><span className="key-glyph">SLOTS</span> <strong className="text-white">1-9 / Wheel:</strong> Select a tool • <strong className="text-white">Shift + ← / →:</strong> Cycle tools</p>
               <p><span className="key-glyph">INFO</span> <strong className="text-white">F3:</strong> Debug  •  <strong className="text-white">Esc:</strong> Pause / Save</p>
             </div>
 
