@@ -1047,7 +1047,7 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
       properties: {
         shape: {
           type: 'string',
-          enum: ['box', 'sphere', 'cylinder', 'wall', 'pyramid', 'circle'],
+          enum: ['box', 'sphere', 'cylinder', 'wall', 'pyramid', 'circle', 'oval', 'ellipsoid'],
           description: 'Type of 3D geometry.',
         },
         block: {
@@ -1072,10 +1072,20 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
           default: false,
           description: 'If true, leaves the interior empty.',
         },
+        animated: {
+          type: 'boolean',
+          default: false,
+          description: 'If true, places blocks progressively over time with real-time audio/visuals.',
+        },
+        delayMs: {
+          type: 'number',
+          default: 15,
+          description: 'Delay between block placements in milliseconds if animated is true (default 15ms).',
+        },
       },
       required: ['shape', 'block'],
     },
-    execute: async ({ shape, block, origin, width = 5, height = 4, depth = 5, radius = 3, hollow = false }) => {
+    execute: async ({ shape, block, origin, width = 5, height = 4, depth = 5, radius = 3, hollow = false, animated = false, delayMs = 15 }) => {
       const blockId = resolveBlockId(block);
 
       let ox = origin?.x, oy = origin?.y, oz = origin?.z;
@@ -1155,6 +1165,22 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
             }
           }
         }
+      } else if (shape === 'oval' || shape === 'ellipsoid') {
+        const rx = Math.max(2, Math.round((width || 14) / 2));
+        const ry = Math.max(2, Math.round((height || 8) / 2));
+        const rz = Math.max(2, Math.round((depth || 14) / 2));
+        for (let dy = -ry; dy <= ry; dy++) {
+          for (let dz = -rz; dz <= rz; dz++) {
+            for (let dx = -rx; dx <= rx; dx++) {
+              const dSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) + (dz * dz) / (rz * rz);
+              const inOval = dSq <= 1.0;
+              const onSurface = inOval && dSq >= 0.72;
+              if (!hollow ? inOval : onSurface) {
+                batch.push({ x: ox + dx, y: oy + dy, z: oz + dz, blockId });
+              }
+            }
+          }
+        }
       }
 
       // Record undo and load chunks
@@ -1169,6 +1195,33 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
       }
 
       ensureChunksLoaded(minX, maxX, minZ, maxZ);
+
+      if (animated && batch.length > 0) {
+        const stepDelay = Math.max(5, Math.min(delayMs || 15, 500));
+        let count = 0;
+        for (const item of batch) {
+          game.chunkManager.setBlock(item.x, item.y, item.z, item.blockId);
+          if (count % 3 === 0) {
+            const def = getBlockDef(item.blockId);
+            sound.playBlockPlace(def.sound || 'stone');
+          }
+          count++;
+          if (stepDelay > 0) {
+            await new Promise((resolve) => setTimeout(resolve, stepDelay));
+          }
+        }
+        pushUndoBatch(undoBatch);
+        game.broadcastUI();
+        return {
+          success: true,
+          shape,
+          block: getBlockName(blockId),
+          placedCount: batch.length,
+          origin: { x: ox, y: oy, z: oz },
+          mode: 'animated',
+        };
+      }
+
       game.chunkManager.setBlocksBatch(batch);
       pushUndoBatch(undoBatch);
       sound.playBlockPlace('stone');
@@ -1180,6 +1233,7 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
         block: getBlockName(blockId),
         placedCount: batch.length,
         origin: { x: ox, y: oy, z: oz },
+        mode: 'instant',
       };
     },
   });
