@@ -123,7 +123,7 @@ export function App() {
         gameState={gameState}
         onSlotSelect={handleSlotSelect}
         onOpenBuildMenu={() => {
-          if (gameRef.current) gameRef.current.inputManager.onBuildMenuToggle?.();
+          if (gameRef.current) gameRef.current.toggleBuildMenu?.();
         }}
       />
 

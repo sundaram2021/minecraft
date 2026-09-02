@@ -36,7 +36,6 @@ export function BuildMenuUI({ onBuild, onClose }) {
   const handleSelect = (id) => {
     sound.playClick();
     onBuild(id);
-    onClose();
   };
 
   return (
@@ -104,6 +103,8 @@ export function BuildMenuUI({ onBuild, onClose }) {
                 </div>
               </div>
               <button
+                type="button"
+                onClick={(event) => { event.stopPropagation(); handleSelect(s.id); }}
                 className="self-center px-4 py-2 bg-green-700 group-hover:bg-green-600 border-2 border-t-green-400 border-l-green-400 border-r-green-950 border-b-green-950 text-xs font-black uppercase tracking-wider text-white whitespace-nowrap shadow"
               >
                 BUILD ▶

@@ -29,7 +29,7 @@ export class SoundSynthesizer {
 
       // Master output chain
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = this.masterVolume;
+      this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
       this.masterCompressor = this.ctx.createDynamicsCompressor();
       this.masterCompressor.threshold.value = -18;
       this.masterCompressor.knee.value = 12;
@@ -790,6 +790,24 @@ export class SoundSynthesizer {
     osc3.stop(time + 4.5);
   }
 
+  playClick() {
+    this.ensureContext();
+    if (!this.ctx || this.muted || this.ctx.state !== 'running') return;
+    const now = this.ctx.currentTime;
+    if (now - this.lastVoiceAt < 0.08) return;
+    this.lastVoiceAt = now;
+    const gain = this.ctx.createGain();
+    const osc = this.ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(760, now + 0.045);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+    osc.connect(gain).connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  }
+
   setMuted(muted) {
     this.muted = Boolean(muted);
     if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
@@ -800,7 +818,7 @@ export class SoundSynthesizer {
     this.sfxVolume = sfx;
     this.musicVolume = music;
 
-    if (this.masterGain) this.masterGain.gain.value = this.masterVolume;
+    if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
     if (this.sfxGain) this.sfxGain.gain.value = this.sfxVolume;
     if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
   }
