@@ -47,6 +47,7 @@ export class InputManager {
     window.addEventListener('mousedown', (e) => this.handleMouseDown(e));
     window.addEventListener('mouseup', (e) => this.handleMouseUp(e));
     window.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+    this.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
 
     document.addEventListener('pointerlockchange', () => {
       this.isPointerLocked = (document.pointerLockElement === this.domElement);
@@ -146,8 +147,10 @@ export class InputManager {
   }
 
   handleMouseDown(e) {
+    // UI owns clicks while the canvas is not locked. Never steal a modal click
+    // by requesting pointer lock from a document-level mouse listener.
     if (!this.isPointerLocked) {
-      this.requestPointerLock();
+      if (e.target === this.domElement) this.requestPointerLock();
       return;
     }
 

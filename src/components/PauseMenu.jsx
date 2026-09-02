@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as THREE from 'three';
 import { sound } from '../game/audio/SoundSynthesizer.js';
 import { worldStorage } from '../game/storage/WorldStorage.js';
 

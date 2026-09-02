@@ -128,7 +128,7 @@ export class Game {
   setupInputHandlers() {
     // 'E' Key: Toggle Inventory
     this.inputManager.onInventoryToggle = () => {
-      if (this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
+      if (this.isBuildMenuOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
         this.closeModals();
         return;
       }
@@ -163,7 +163,7 @@ export class Game {
 
     // 'Esc' Key: Pause Menu
     this.inputManager.onPauseToggle = () => {
-      if (this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
+      if (this.isInventoryOpen || this.isBuildMenuOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen) {
         this.closeModals();
         return;
       }

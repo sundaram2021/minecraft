@@ -8,6 +8,9 @@ export class SoundSynthesizer {
     this.sfxGain = null;
     this.musicGain = null;
     this.reverbNode = null;
+    this.masterCompressor = null;
+    this.activeVoices = 0;
+    this.maxVoices = 64;
     this.muted = false;
     this.musicPlaying = false;
     this.masterVolume = 0.85;
@@ -26,7 +29,14 @@ export class SoundSynthesizer {
       // Master output chain
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.value = this.masterVolume;
-      this.masterGain.connect(this.ctx.destination);
+      this.masterCompressor = this.ctx.createDynamicsCompressor();
+      this.masterCompressor.threshold.value = -18;
+      this.masterCompressor.knee.value = 12;
+      this.masterCompressor.ratio.value = 4;
+      this.masterCompressor.attack.value = 0.003;
+      this.masterCompressor.release.value = 0.18;
+      this.masterGain.connect(this.masterCompressor);
+      this.masterCompressor.connect(this.ctx.destination);
 
       // SFX Bus
       this.sfxGain = this.ctx.createGain();
