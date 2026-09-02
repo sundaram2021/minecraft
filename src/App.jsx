@@ -94,14 +94,14 @@ export function App() {
             </p>
 
             <div className="bg-[#111111] p-4 border border-white/20 text-left text-xs text-gray-300 mb-6 space-y-2 leading-relaxed">
-              <p>🎮 <strong className="text-white">WASD:</strong> Walk / Swim</p>
-              <p>🏃 <strong className="text-white">Ctrl / Shift:</strong> Sprint / Sneak</p>
-              <p>🚀 <strong className="text-white">Space:</strong> Jump / Swim Up (Double-tap Space to Fly in Creative)</p>
-              <p>⛏️ <strong className="text-white">Left Click:</strong> Mine + Attack (Shears on Sheep)</p>
-              <p>🧱 <strong className="text-white">Right Click:</strong> Place / Eat / Open Crafting / Furnace / Chest / Hoe Farmland</p>
-              <p>🎒 <strong className="text-white">E:</strong> Inventory & 2x2 Crafting — 120+ Blocks, 14 Biomes</p>
-              <p>🔢 <strong className="text-white">1-9 / Wheel:</strong> Hotbar + Weather & Structures</p>
-              <p>📊 <strong className="text-white">F3:</strong> Debug  •  <strong className="text-white">Esc:</strong> Pause / Save</p>
+              <p><span className="key-glyph">MOVE</span> <strong className="text-white">WASD:</strong> Walk / Swim</p>
+              <p><span className="key-glyph">PACE</span> <strong className="text-white">Ctrl / Shift:</strong> Sprint / Sneak</p>
+              <p><span className="key-glyph">JUMP</span> <strong className="text-white">Space:</strong> Jump / Swim Up (Double-tap Space to Fly in Creative)</p>
+              <p><span className="key-glyph">MINE</span> <strong className="text-white">Left Click:</strong> Mine + Attack (Shears on Sheep)</p>
+              <p><span className="key-glyph">BUILD</span> <strong className="text-white">Right Click:</strong> Place / Eat / Open Crafting / Furnace / Chest / Hoe Farmland</p>
+              <p><span className="key-glyph">PACK</span> <strong className="text-white">E:</strong> Inventory & 2x2 Crafting — 120+ Blocks, 14 Biomes</p>
+              <p><span className="key-glyph">SLOTS</span> <strong className="text-white">1-9 / Wheel:</strong> Hotbar + Weather & Structures</p>
+              <p><span className="key-glyph">INFO</span> <strong className="text-white">F3:</strong> Debug  •  <strong className="text-white">Esc:</strong> Pause / Save</p>
             </div>
 
             <button

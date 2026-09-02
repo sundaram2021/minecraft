@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ItemSlot } from './ItemSlot.jsx';
+import { VoxelAsset } from './VoxelAsset.jsx';
 import { getBlockDef } from '../game/world/Blocks.js';
 
 export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
@@ -196,7 +197,7 @@ export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
               className="bg-green-700/90 hover:bg-green-600 px-3 py-1 rounded text-white text-xs font-mono font-bold border border-green-400/40 shadow flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
               title="Open Quick Build Architect [B]"
             >
-              <span>🏗️</span> [B] Quick Build
+              <VoxelAsset type="tool" tone="gold" size={18} label="Quick build" /> [B] QUICK BUILD
             </button>
           </div>
           <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">

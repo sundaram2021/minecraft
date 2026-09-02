@@ -11,11 +11,12 @@ export class SoundSynthesizer {
     this.masterCompressor = null;
     this.activeVoices = 0;
     this.maxVoices = 64;
-    this.muted = false;
+    this.muted = true;
     this.musicPlaying = false;
-    this.masterVolume = 0.85;
-    this.sfxVolume = 0.9;
-    this.musicVolume = 0.55;
+    this.masterVolume = 0.55;
+    this.sfxVolume = 0.45;
+    this.musicVolume = 0.25;
+    this.lastVoiceAt = 0;
 
     this.stepVariation = 0;
   }
@@ -787,6 +788,11 @@ export class SoundSynthesizer {
     osc1.stop(time + 4.5);
     osc2.stop(time + 4.5);
     osc3.stop(time + 4.5);
+  }
+
+  setMuted(muted) {
+    this.muted = Boolean(muted);
+    if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.masterVolume;
   }
 
   setVolume(master, sfx, music) {

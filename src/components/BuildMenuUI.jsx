@@ -1,12 +1,13 @@
 import React from 'react';
 import { sound } from '../game/audio/SoundSynthesizer.js';
+import { VoxelAsset } from './VoxelAsset.jsx';
 
 export function BuildMenuUI({ onBuild, onClose }) {
   const structures = [
     {
       id: 'cottage',
       title: 'Cozy Wooden Cottage',
-      icon: '🏡',
+      icon: 'cottage',
       desc: 'Furnished 7x7 home with oak wood, glass windows, brick roof, chimney, bed, crafting table, furnace, chest & flower garden.',
       blocksText: 'Oak Planks, Glass, Bricks, Cobblestone, Bed, Furnace, Chest, Flowers',
       badge: 'POPULAR',
@@ -15,7 +16,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
     {
       id: 'watchtower',
       title: 'Medieval Watchtower',
-      icon: '🏰',
+      icon: 'watchtower',
       desc: '13-block tall stone fortress tower with overhanging battlements, parapet crenellations, arrow slits, corner torches, and a glowing beacon.',
       blocksText: 'Stone Bricks, Mossy Cobble, Glowstone, Torches, Iron Bars',
       badge: 'FORTRESS',
@@ -24,7 +25,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
     {
       id: 'pyramid',
       title: 'Ancient Desert Pyramid',
-      icon: '👑',
+      icon: 'pyramid',
       desc: 'Stepped sandstone monument with a gleaming Gold block capstone, and a secret interior treasure burial chamber.',
       blocksText: 'Sandstone, Gold Blocks, Lapis Lazuli, Diamond, Treasure Chest',
       badge: 'TREASURE',
@@ -54,7 +55,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-[#404040] pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🏗️</span>
+            <VoxelAsset type="tool" tone="gold" size={28} label="Build architect" />
             <div>
               <h2 className="text-xl font-black text-yellow-400 tracking-wider">
                 QUICK BUILD ARCHITECT
@@ -84,7 +85,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
               className="group relative flex items-start gap-4 p-3.5 bg-[#1b1b1b] hover:bg-[#232323] border-2 border-[#3c3c3c] hover:border-yellow-400 cursor-pointer transition-all active:scale-[0.99]"
             >
               <div className="text-3xl p-2 bg-[#2d2d2d] border border-white/10 group-hover:scale-110 transition-transform">
-                {s.icon}
+                <VoxelAsset type="block" tone={s.id === 'pyramid' ? 'gold' : s.id === 'cottage' ? 'wood' : 'stone'} size={42} label={`${s.title} structure`} />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -99,7 +100,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
                   {s.desc}
                 </p>
                 <div className="text-[11px] text-gray-400 font-mono">
-                  🧱 <span className="text-gray-400">{s.blocksText}</span>
+                  <span className="voxel-mini-glyph" aria-hidden="true">◆</span> <span className="text-gray-400">{s.blocksText}</span>
                 </div>
               </div>
               <button
@@ -113,7 +114,7 @@ export function BuildMenuUI({ onBuild, onClose }) {
 
         {/* Footer info */}
         <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
-          <span>💡 Tip: Press <strong className="text-yellow-400 font-mono">[B]</strong> anytime to open this builder</span>
+          <span><span className="voxel-mini-glyph" aria-hidden="true">◆</span> Tip: Press <strong className="text-yellow-400 font-mono">[B]</strong> anytime to open this builder</span>
           <span className="text-green-400 font-bold">Watch it build live in 3D!</span>
         </div>
       </div>
