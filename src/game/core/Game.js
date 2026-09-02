@@ -193,6 +193,8 @@ export class Game {
       if (this.player.gameMode === 'creative') {
         this.player.physics.isFlying = !this.player.physics.isFlying;
         this.player.physics.velocity.set(0, 0, 0);
+        this.player.physics.onGround = false;
+        this.broadcastUI();
       }
     };
 
@@ -601,12 +603,16 @@ export class Game {
       return { targetX, targetY, targetZ, count: blocks.length };
     }
 
+    // Cancel any previous build before starting another one.
+    if (this.structureBuildTimer) clearInterval(this.structureBuildTimer);
+
     // Smooth progressive construction with SFX and particle bursts
     let index = 0;
     const batchSize = 12;
-    const interval = setInterval(() => {
+    this.structureBuildTimer = setInterval(() => {
       if (index >= blocks.length) {
-        clearInterval(interval);
+        clearInterval(this.structureBuildTimer);
+        this.structureBuildTimer = null;
         sound.playLevelUp?.();
         this.broadcastUI();
         return;

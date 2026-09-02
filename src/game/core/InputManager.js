@@ -29,7 +29,8 @@ export class InputManager {
     this.onDebugToggle = null;     // 'F3' key
     this.onPauseToggle = null;     // 'Esc' key
     this.onHotbarSelect = null;    // Numbers 1-9 & Mouse wheel
-    this.onFlyToggle = null;       // Double space in creative
+    this.onFlyToggle = null;       // Double space or F in creative
+    this.onBuildMenuToggle = null;  // B key
     this.onLeftClick = null;
     this.onRightClick = null;
     this.onMiddleClick = null;
@@ -119,6 +120,13 @@ export class InputManager {
     if (e.key >= '1' && e.key <= '9') {
       const slotIndex = parseInt(e.key, 10) - 1;
       if (this.onHotbarSelect) this.onHotbarSelect(slotIndex);
+      return;
+    }
+
+    // Explicit flight toggle for keyboard layouts where double-space is unreliable.
+    if (code === 'KeyF') {
+      e.preventDefault();
+      if (this.onFlyToggle) this.onFlyToggle();
       return;
     }
 
