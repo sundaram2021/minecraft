@@ -20,6 +20,8 @@ import { furnaceManager } from '../world/FurnaceManager.js';
 import { chestManager } from '../world/ChestManager.js';
 import { Weather } from '../world/Weather.js';
 import { StructureBuilder } from '../world/StructureBuilder.js';
+import { setupWebMCP } from '../webmcp/WebMCPPolyfill.js';
+import { registerMinecraftWebMCPTools } from '../webmcp/MinecraftWebMCPTools.js';
 
 export class Game {
   constructor(canvasContainer, uiCallback) {
@@ -87,6 +89,7 @@ export class Game {
     this.isFurnaceOpen = false;
     this.isChestOpen = false;
     this.isBuildMenuOpen = false;
+    this.modelContext = null;
     this.furnacePos = null;
     this.chestPos = null;
     this.showDebug = false;
@@ -119,12 +122,25 @@ export class Game {
     // 5. Auto-save every 30 seconds
     setInterval(() => this.autoSave(), 30000);
 
+    // 6. Initialize WebMCP (Chrome AI & W3C standard ModelContext)
+    this.initWebMCP();
+
     // Initial hand item view
     this.handViewModel.updateHeldItem(this.player.getSelectedSlot());
 
     this.isRunning = true;
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.loop(t));
+  }
+
+  async initWebMCP() {
+    try {
+      const modelContext = setupWebMCP();
+      await registerMinecraftWebMCPTools(modelContext, this);
+      this.modelContext = modelContext;
+    } catch (err) {
+      console.error('[WebMCP] Error initializing WebMCP tools:', err);
+    }
   }
 
   setupInputHandlers() {

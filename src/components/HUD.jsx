@@ -200,7 +200,6 @@ export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
               title="Open Quick Build Architect [B]"
               >
               <VoxelAsset type="tool" tone="gold" size={20} label="Quick build" /> <span>[B] QUICK BUILD</span>
-
             </button>
           </div>
           <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">
