@@ -72,6 +72,8 @@ export class Game {
     this.miningTarget = null;
     this.miningProgress = 0;
     this.miningTimer = 0;
+    this.attackCooldown = 0;
+    this.structureBuildTimer = null;
 
     // Performance Stats
     this.fps = 60;
@@ -342,6 +344,7 @@ export class Game {
 
   // Mining / Block Breaking System
   handleMining(dt) {
+    this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     if (!this.inputManager.mouseButtons.left || this.isInventoryOpen || this.isCraftingTableOpen || this.isFurnaceOpen || this.isChestOpen || this.isPaused) {
       this.miningProgress = 0;
       this.miningTarget = null;
@@ -353,9 +356,10 @@ export class Game {
     const forward = this.cameraController.getForwardVector();
 
     // 1. Check mob hit (Melee attack)
-    const hitMob = this.mobManager.hitMob(eyePos, forward, 7);
+    const hitMob = this.attackCooldown <= 0 ? this.mobManager.hitMob(eyePos, forward, 7) : null;
     if (hitMob) {
-      sound.playPlayerHurt();
+      this.attackCooldown = 0.42;
+      sound.playToolSwing();
       this.handViewModel.triggerSwing();
       return;
     }

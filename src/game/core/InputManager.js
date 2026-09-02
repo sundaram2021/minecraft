@@ -51,6 +51,11 @@ export class InputManager {
 
     document.addEventListener('pointerlockchange', () => {
       this.isPointerLocked = (document.pointerLockElement === this.domElement);
+      if (!this.isPointerLocked) this.resetTransientState();
+    });
+    window.addEventListener('blur', () => this.resetTransientState());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.resetTransientState();
     });
   }
 
@@ -73,6 +78,13 @@ export class InputManager {
         document.exitPointerLock();
       }
     } catch (e) {}
+  }
+
+  resetTransientState() {
+    Object.keys(this.keys).forEach((key) => { this.keys[key] = false; });
+    Object.keys(this.mouseButtons).forEach((button) => { this.mouseButtons[button] = false; });
+    this.mouseDeltaX = 0;
+    this.mouseDeltaY = 0;
   }
 
   handleKeyDown(e) {
