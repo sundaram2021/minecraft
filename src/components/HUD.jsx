@@ -196,10 +196,11 @@ export function HUD({ gameState, onSlotSelect, onOpenBuildMenu }) {
               onMouseDown={(event) => { event.stopPropagation(); onOpenBuildMenu(); }}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => event.stopPropagation()}
-              className="relative z-20 pointer-events-auto bg-green-700/90 hover:bg-green-600 px-3 py-1 rounded text-white text-xs font-mono font-bold border border-green-400/40 shadow flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+              className="relative z-20 pointer-events-auto flex items-center gap-2 border-2 border-[#d7d7d7] border-t-[#ffffff] border-l-[#ffffff] border-r-[#555555] border-b-[#555555] bg-[#c6c6c6] px-3 py-1.5 text-[#202020] text-xs font-mono font-black tracking-wide shadow-[2px_2px_0_#111] cursor-pointer transition-transform hover:bg-[#dedede] focus-visible:outline-2 focus-visible:outline-yellow-300 active:translate-y-px"
               title="Open Quick Build Architect [B]"
-            >
-              <VoxelAsset type="tool" tone="gold" size={18} label="Quick build" /> [B] QUICK BUILD
+              >
+              <VoxelAsset type="tool" tone="gold" size={20} label="Quick build" /> <span>[B] QUICK BUILD</span>
+
             </button>
           </div>
           <div className="bg-black/50 backdrop-blur-sm px-3 py-1 rounded text-white text-xs font-mono border border-white/10 shadow">

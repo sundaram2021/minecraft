@@ -176,7 +176,16 @@ export class Game {
     };
 
     // Hotbar selection
-    this.inputManager.onHotbarSelect = (indexOrDelta, isRelative = false) => {
+    this.inputManager.onToolCycle = (delta) => {
+    let next = (this.player.selectedHotbarIndex + delta) % 9;
+    if (next < 0) next += 9;
+    this.player.selectedHotbarIndex = next;
+    this.handViewModel.updateHeldItem(this.player.getSelectedSlot());
+    sound.playClick();
+    this.broadcastUI();
+  };
+
+  this.inputManager.onHotbarSelect = (indexOrDelta, isRelative = false) => {
       if (isRelative) {
         let newIdx = (this.player.selectedHotbarIndex + indexOrDelta) % 9;
         if (newIdx < 0) newIdx += 9;
@@ -411,7 +420,8 @@ export class Game {
       }
 
       const breakTime = Math.max(0.05, (def.hardness * 1.5) / toolSpeed);
-      this.miningProgress += dt / breakTime;
+      // Click-to-act remains responsive while held mining is twice as fast.
+      this.miningProgress += (dt * 2) / breakTime;
 
       this.raycaster.updateTarget(hit, this.miningProgress);
 

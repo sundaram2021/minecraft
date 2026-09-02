@@ -57,16 +57,15 @@ export class SoundSynthesizer {
       this.sfxGain.gain.value = this.sfxVolume;
       this.sfxGain.connect(this.masterGain);
 
-      // Music Bus with gentle stereo warmth
+      // Ambient music is intentionally disabled; only action sounds are used.
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = this.musicVolume;
+      this.musicGain.gain.value = 0;
       this.musicGain.connect(this.masterGain);
 
       // Algorithmic Reverb Impulse for spatial depth
       this.initReverb();
 
-      // Start C418-inspired ambient generative soundtrack
-      this.startC418Soundtrack();
+      // No ambient soundtrack: gameplay feedback stays action-only.
     } catch (e) {
       console.warn('Web Audio API not supported or blocked', e);
     }
