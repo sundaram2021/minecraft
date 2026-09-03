@@ -284,4 +284,190 @@ export class StructureBuilder {
 
     return blocks.sort((a, b) => a.y - b.y);
   }
+
+  /**
+   * Generates a medieval stone fortress / castle with 4 corner towers,
+   * curtain walls, battlements, iron gate, and inner courtyard.
+   */
+  static getCastleBlocks(ox, oy, oz) {
+    const blocks = [];
+    const size = 5; // 11x11 footprint (-5 to 5)
+    const wallH = 5;
+    const towerH = 8;
+
+    // Foundation & Courtyard floor
+    for (let dx = -size; dx <= size; dx++) {
+      for (let dz = -size; dz <= size; dz++) {
+        blocks.push({ x: ox + dx, y: oy, z: oz + dz, blockId: BLOCKS.COBBLESTONE, sound: 'stone' });
+      }
+    }
+
+    // Curtain walls
+    for (let y = 1; y <= wallH; y++) {
+      for (let d = -size; d <= size; d++) {
+        // North & South walls
+        for (const dz of [-size, size]) {
+          const isGate = dz === size && Math.abs(d) <= 1 && y <= 3;
+          if (isGate) {
+            blocks.push({ x: ox + d, y: oy + y, z: oz + dz, blockId: y === 3 ? BLOCKS.IRON_BARS : BLOCKS.AIR, sound: 'stone' });
+          } else {
+            blocks.push({ x: ox + d, y: oy + y, z: oz + dz, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+          }
+        }
+        // East & West walls
+        for (const dx of [-size, size]) {
+          blocks.push({ x: ox + dx, y: oy + y, z: oz + d, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+        }
+      }
+    }
+
+    // Wall Battlements (Crenellations on top of curtain walls)
+    for (let d = -size; d <= size; d++) {
+      if (Math.abs(d) % 2 === 0) {
+        blocks.push({ x: ox + d, y: oy + wallH + 1, z: oz - size, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+        blocks.push({ x: ox + d, y: oy + wallH + 1, z: oz + size, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+        blocks.push({ x: ox - size, y: oy + wallH + 1, z: oz + d, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+        blocks.push({ x: ox + size, y: oy + wallH + 1, z: oz + d, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+      }
+    }
+
+    // 4 Corner Towers (3x3 each)
+    const corners = [
+      { cx: -size, cz: -size },
+      { cx: size, cz: -size },
+      { cx: -size, cz: size },
+      { cx: size, cz: size },
+    ];
+
+    for (const { cx, cz } of corners) {
+      for (let y = 1; y <= towerH; y++) {
+        for (let tdx = -1; tdx <= 1; tdx++) {
+          for (let tdz = -1; tdz <= 1; tdz++) {
+            const isOuter = Math.abs(tdx) === 1 || Math.abs(tdz) === 1;
+            if (isOuter || y === towerH) {
+              blocks.push({ x: ox + cx + tdx, y: oy + y, z: oz + cz + tdz, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+            } else {
+              blocks.push({ x: ox + cx + tdx, y: oy + y, z: oz + cz + tdz, blockId: BLOCKS.AIR, sound: 'stone' });
+            }
+          }
+        }
+      }
+      // Tower Crenellations & Torch
+      for (let tdx = -1; tdx <= 1; tdx++) {
+        for (let tdz = -1; tdz <= 1; tdz++) {
+          if ((Math.abs(tdx) + Math.abs(tdz)) % 2 !== 0) {
+            blocks.push({ x: ox + cx + tdx, y: oy + towerH + 1, z: oz + cz + tdz, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+          }
+        }
+      }
+      blocks.push({ x: ox + cx, y: oy + towerH + 1, z: oz + cz, blockId: BLOCKS.TORCH, sound: 'wood' });
+    }
+
+    // Courtyard Center Feature: Golden Beacon & Torch
+    blocks.push({ x: ox, y: oy + 1, z: oz, blockId: BLOCKS.GOLD_BLOCK, sound: 'stone' });
+    blocks.push({ x: ox, y: oy + 2, z: oz, blockId: BLOCKS.GLOWSTONE, sound: 'stone' });
+
+    return blocks.sort((a, b) => a.y - b.y);
+  }
+
+  /**
+   * Generates a decorative Quartz & Prismarine Water Fountain with Sea Lanterns.
+   */
+  static getFountainBlocks(ox, oy, oz) {
+    const blocks = [];
+    const r = 3;
+
+    // Base basin floor
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dz = -r; dz <= r; dz++) {
+        const dSq = dx * dx + dz * dz;
+        if (dSq <= (r + 0.5) * (r + 0.5)) {
+          blocks.push({ x: ox + dx, y: oy, z: oz + dz, blockId: BLOCKS.PRISMARINE || BLOCKS.STONE_BRICKS, sound: 'stone' });
+        }
+      }
+    }
+
+    // Basin rim (outer border) and water inside
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dz = -r; dz <= r; dz++) {
+        const dSq = dx * dx + dz * dz;
+        const isRim = dSq > (r - 0.9) * (r - 0.9) && dSq <= (r + 0.5) * (r + 0.5);
+        const isInside = dSq <= (r - 0.9) * (r - 0.9);
+        if (isRim) {
+          blocks.push({ x: ox + dx, y: oy + 1, z: oz + dz, blockId: BLOCKS.QUARTZ_BLOCK || BLOCKS.SMOOTH_STONE, sound: 'stone' });
+        } else if (isInside) {
+          blocks.push({ x: ox + dx, y: oy + 1, z: oz + dz, blockId: BLOCKS.WATER, sound: 'water' });
+        }
+      }
+    }
+
+    // Center Spire
+    for (let y = 1; y <= 4; y++) {
+      blocks.push({ x: ox, y: oy + y, z: oz, blockId: BLOCKS.QUARTZ_BLOCK || BLOCKS.STONE_BRICKS, sound: 'stone' });
+    }
+    blocks.push({ x: ox, y: oy + 5, z: oz, blockId: BLOCKS.SEA_LANTERN || BLOCKS.GLOWSTONE, sound: 'stone' });
+    blocks.push({ x: ox, y: oy + 6, z: oz, blockId: BLOCKS.WATER, sound: 'water' });
+
+    return blocks.sort((a, b) => a.y - b.y);
+  }
+
+  /**
+   * Generates a Nether Portal frame with glowing purple portal interior.
+   */
+  static getNetherPortalBlocks(ox, oy, oz) {
+    const blocks = [];
+
+    // Stone brick base step
+    for (let dx = -3; dx <= 3; dx++) {
+      for (let dz = -1; dz <= 1; dz++) {
+        blocks.push({ x: ox + dx, y: oy, z: oz + dz, blockId: BLOCKS.STONE_BRICKS, sound: 'stone' });
+      }
+    }
+
+    // Obsidian Frame (5 wide x 6 high)
+    for (let y = 1; y <= 5; y++) {
+      for (let dx = -2; dx <= 2; dx++) {
+        const isFrame = dx === -2 || dx === 2 || y === 1 || y === 5;
+        if (isFrame) {
+          blocks.push({ x: ox + dx, y: oy + y, z: oz, blockId: BLOCKS.OBSIDIAN, sound: 'stone' });
+        } else {
+          // Purple portal energy
+          blocks.push({ x: ox + dx, y: oy + y, z: oz, blockId: BLOCKS.PURPLE_WOOL, sound: 'cloth' });
+        }
+      }
+    }
+
+    // Corner Torches on base
+    blocks.push({ x: ox - 3, y: oy + 1, z: oz - 1, blockId: BLOCKS.TORCH, sound: 'wood' });
+    blocks.push({ x: ox + 3, y: oy + 1, z: oz - 1, blockId: BLOCKS.TORCH, sound: 'wood' });
+    blocks.push({ x: ox - 3, y: oy + 1, z: oz + 1, blockId: BLOCKS.TORCH, sound: 'wood' });
+    blocks.push({ x: ox + 3, y: oy + 1, z: oz + 1, blockId: BLOCKS.TORCH, sound: 'wood' });
+
+    return blocks.sort((a, b) => a.y - b.y);
+  }
+
+  /**
+   * Universal dispatcher for all structure types and aliases.
+   */
+  static getStructureBlocks(type = 'cottage', ox = 0, oy = 64, oz = 0) {
+    const t = String(type || '').toLowerCase().trim().replace(/[\s-]/g, '_');
+
+    if (t === 'watchtower' || t === 'tower' || t === 'guard_tower' || t === 'stone_tower') {
+      return StructureBuilder.getWatchtowerBlocks(ox, oy, oz);
+    }
+    if (t === 'pyramid' || t === 'desert_pyramid' || t === 'tomb') {
+      return StructureBuilder.getPyramidBlocks(ox, oy, oz);
+    }
+    if (t === 'castle' || t === 'fortress' || t === 'keep' || t === 'fort') {
+      return StructureBuilder.getCastleBlocks(ox, oy, oz);
+    }
+    if (t === 'fountain' || t === 'water_fountain' || t === 'pool') {
+      return StructureBuilder.getFountainBlocks(ox, oy, oz);
+    }
+    if (t === 'portal' || t === 'nether_portal' || t === 'obsidian_portal') {
+      return StructureBuilder.getNetherPortalBlocks(ox, oy, oz);
+    }
+    // Default to cottage (cottage, house, home, cabin, wood_house)
+    return StructureBuilder.getCottageBlocks(ox, oy, oz);
+  }
 }

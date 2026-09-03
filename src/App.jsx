@@ -35,6 +35,7 @@ export function App() {
     isCraftingTableOpen: false,
     isFurnaceOpen: false,
     isChestOpen: false,
+    isBuildMenuOpen: false,
     furnacePos: null,
     chestPos: null,
     showDebug: false,
