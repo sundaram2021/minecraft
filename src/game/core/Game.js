@@ -545,64 +545,56 @@ export class Game {
   // Procedural Structure Construction with optional progressive timelapse animation
   buildStructure(type = 'cottage', options = {}) {
     let targetX, targetY, targetZ;
-    if (options.pos) {
-      targetX = Math.round(options.pos.x);
-      targetY = Math.round(options.pos.y);
-      targetZ = Math.round(options.pos.z);
+    const pos = options.origin || options.pos;
+    if (pos && typeof pos.x === 'number' && typeof pos.z === 'number') {
+      targetX = Math.round(pos.x);
+      targetZ = Math.round(pos.z);
+      if (typeof pos.y === 'number') {
+        targetY = Math.round(pos.y);
+      } else {
+        const gh = this.worldGen.getHeight(targetX, targetZ);
+        targetY = Math.max(gh, Math.round(this.player.physics.position.y) - 1);
+      }
     } else {
       const forward = this.cameraController.getForwardVector();
-      const dist = type === 'pyramid' ? 10 : 8;
+      const dist = type === 'pyramid' || type === 'castle' ? 12 : 8;
       targetX = Math.round(this.player.physics.position.x + forward.x * dist);
       targetZ = Math.round(this.player.physics.position.z + forward.z * dist);
       const gh = this.worldGen.getHeight(targetX, targetZ);
       targetY = Math.max(gh, Math.round(this.player.physics.position.y) - 1);
     }
 
-    let blocks = [];
-    if (type === 'watchtower' || type === 'tower') {
-      blocks = StructureBuilder.getWatchtowerBlocks(targetX, targetY, targetZ);
-    } else if (type === 'pyramid') {
-      blocks = StructureBuilder.getPyramidBlocks(targetX, targetY, targetZ);
-    } else {
-      blocks = StructureBuilder.getCottageBlocks(targetX, targetY, targetZ);
-    }
+    const blocks = StructureBuilder.getStructureBlocks(type, targetX, targetY, targetZ);
 
     // Ensure chunks around target are loaded
-    const minCx = Math.floor((targetX - 16) / 16);
-    const maxCx = Math.floor((targetX + 16) / 16);
-    const minCz = Math.floor((targetZ - 16) / 16);
-    const maxCz = Math.floor((targetZ + 16) / 16);
+    const minCx = Math.floor((targetX - 24) / 16);
+    const maxCx = Math.floor((targetX + 24) / 16);
+    const minCz = Math.floor((targetZ - 24) / 16);
+    const maxCz = Math.floor((targetZ + 24) / 16);
     for (let cz = minCz; cz <= maxCz; cz++) {
       for (let cx = minCx; cx <= maxCx; cx++) {
         this.chunkManager.loadChunk(cx, cz);
       }
     }
 
-    // Scenic camera positioning so the player can watch the whole build
-    if (options.adjustCamera !== false) {
-      const offsetDist = type === 'pyramid' ? 14 : 11;
+    // Save undo batch
+    const undoBatch = [];
+    for (const b of blocks) {
+      const oldId = this.chunkManager.getBlock(b.x, b.y, b.z);
+      undoBatch.push({ x: b.x, y: b.y, z: b.z, oldBlockId: oldId, newBlockId: b.blockId });
+    }
+    if (this.webMcpUndoStack) {
+      this.webMcpUndoStack.push(undoBatch);
+      if (this.webMcpUndoStack.length > 20) this.webMcpUndoStack.shift();
+    }
+
+    // Scenic camera positioning only if explicitly requested (e.g. from Quick Build UI)
+    if (options.adjustCamera === true) {
+      const offsetDist = type === 'pyramid' || type === 'castle' ? 16 : 11;
       const viewX = targetX;
       const viewZ = targetZ + offsetDist;
       const viewGroundY = this.worldGen.getHeight(viewX, viewZ);
       const viewY = Math.max(targetY + 3.0, viewGroundY + 2.5);
-
-      // Clear space around player vantage
-      for (let dy = -1; dy <= 4; dy++) {
-        for (let dx = -2; dx <= 2; dx++) {
-          for (let dz = -2; dz <= 2; dz++) {
-            this.chunkManager.setBlock(viewX + dx, Math.floor(viewY + dy), viewZ + dz, BLOCKS.AIR);
-          }
-        }
-      }
-
-      // Clear line of sight between viewer and building so no hill obstructs view
-      for (let z = targetZ + 4; z <= viewZ; z++) {
-        for (let x = targetX - 3; x <= targetX + 3; x++) {
-          for (let y = Math.floor(targetY + 1); y <= Math.floor(viewY + 2); y++) {
-            this.chunkManager.setBlock(x, y, z, BLOCKS.AIR);
-          }
-        }
-      }
 
       this.player.physics.position.set(viewX, viewY, viewZ);
       this.player.physics.velocity.set(0, 0, 0);
@@ -626,7 +618,7 @@ export class Game {
       this.chunkManager.setBlocksBatch(blocks);
       sound.playBlockPlace('wood');
       this.broadcastUI();
-      return { targetX, targetY, targetZ, count: blocks.length };
+    return { targetX, targetY, targetZ, count: blocks.length };
     }
 
     // Cancel any previous build before starting another one.
@@ -655,7 +647,7 @@ export class Game {
       index += batchSize;
     }, 25);
 
-    return { targetX, targetY, targetZ, count: blocks.length };
+    return { targetX, targetY, targetZ, count: blocks.length, type };
   }
 
   // Main Game Loop

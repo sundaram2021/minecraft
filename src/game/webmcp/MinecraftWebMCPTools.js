@@ -2,6 +2,129 @@ import * as THREE from 'three';
 import { BLOCKS, getBlockDef } from '../world/Blocks.js';
 import { sound } from '../audio/SoundSynthesizer.js';
 
+const NATURAL_BLOCK_ALIASES = {
+  // Woods
+  wood: BLOCKS.OAK_PLANKS,
+  plank: BLOCKS.OAK_PLANKS,
+  planks: BLOCKS.OAK_PLANKS,
+  oak: BLOCKS.OAK_PLANKS,
+  oak_plank: BLOCKS.OAK_PLANKS,
+  oak_planks: BLOCKS.OAK_PLANKS,
+  log: BLOCKS.OAK_LOG,
+  logs: BLOCKS.OAK_LOG,
+  oak_log: BLOCKS.OAK_LOG,
+  leaves: BLOCKS.OAK_LEAVES,
+  leaf: BLOCKS.OAK_LEAVES,
+  spruce: BLOCKS.SPRUCE_PLANKS,
+  spruce_plank: BLOCKS.SPRUCE_PLANKS,
+  spruce_planks: BLOCKS.SPRUCE_PLANKS,
+  spruce_log: BLOCKS.SPRUCE_LOG,
+  birch: BLOCKS.BIRCH_PLANKS,
+  birch_plank: BLOCKS.BIRCH_PLANKS,
+  birch_planks: BLOCKS.BIRCH_PLANKS,
+  birch_log: BLOCKS.BIRCH_LOG,
+
+  // Stones & Bricks
+  stone: BLOCKS.STONE,
+  cobble: BLOCKS.COBBLESTONE,
+  cobblestone: BLOCKS.COBBLESTONE,
+  mossy_cobble: BLOCKS.MOSSY_COBBLESTONE,
+  mossy_cobblestone: BLOCKS.MOSSY_COBBLESTONE,
+  brick: BLOCKS.BRICKS,
+  bricks: BLOCKS.BRICKS,
+  stone_brick: BLOCKS.STONE_BRICKS,
+  stone_bricks: BLOCKS.STONE_BRICKS,
+  smooth_stone: BLOCKS.SMOOTH_STONE,
+  sandstone: BLOCKS.SANDSTONE,
+  smooth_sandstone: BLOCKS.SMOOTH_SANDSTONE,
+  obsidian: BLOCKS.OBSIDIAN,
+  bedrock: BLOCKS.BEDROCK,
+  gravel: BLOCKS.GRAVEL,
+  sand: BLOCKS.SAND,
+  clay: BLOCKS.CLAY,
+  dirt: BLOCKS.DIRT,
+  grass: BLOCKS.GRASS,
+  grass_block: BLOCKS.GRASS,
+
+  // Glass & Lights
+  glass: BLOCKS.GLASS,
+  glass_block: BLOCKS.GLASS,
+  torch: BLOCKS.TORCH,
+  torches: BLOCKS.TORCH,
+  glowstone: BLOCKS.GLOWSTONE,
+  glow_stone: BLOCKS.GLOWSTONE,
+  lamp: BLOCKS.SEA_LANTERN,
+  lantern: BLOCKS.SEA_LANTERN,
+  sea_lantern: BLOCKS.SEA_LANTERN,
+
+  // Ores & Metals
+  iron: BLOCKS.IRON_BLOCK,
+  iron_block: BLOCKS.IRON_BLOCK,
+  gold: BLOCKS.GOLD_BLOCK,
+  gold_block: BLOCKS.GOLD_BLOCK,
+  diamond: BLOCKS.DIAMOND_BLOCK,
+  diamond_block: BLOCKS.DIAMOND_BLOCK,
+  emerald: BLOCKS.EMERALD_BLOCK,
+  emerald_block: BLOCKS.EMERALD_BLOCK,
+  lapis: BLOCKS.LAPIS_BLOCK,
+  lapis_block: BLOCKS.LAPIS_BLOCK,
+  redstone: BLOCKS.REDSTONE_BLOCK,
+  redstone_block: BLOCKS.REDSTONE_BLOCK,
+  coal: BLOCKS.COAL_BLOCK,
+  coal_block: BLOCKS.COAL_BLOCK,
+  copper: BLOCKS.COPPER_BLOCK,
+  copper_block: BLOCKS.COPPER_BLOCK,
+  quartz: BLOCKS.QUARTZ_BLOCK,
+  quartz_block: BLOCKS.QUARTZ_BLOCK,
+  prismarine: BLOCKS.PRISMARINE,
+
+  // Wools & Colors
+  wool: BLOCKS.WHITE_WOOL,
+  white_wool: BLOCKS.WHITE_WOOL,
+  white: BLOCKS.WHITE_WOOL,
+  red_wool: BLOCKS.RED_WOOL,
+  red: BLOCKS.RED_WOOL,
+  blue_wool: BLOCKS.BLUE_WOOL,
+  blue: BLOCKS.BLUE_WOOL,
+  green_wool: BLOCKS.GREEN_WOOL,
+  green: BLOCKS.GREEN_WOOL,
+  yellow_wool: BLOCKS.YELLOW_WOOL,
+  yellow: BLOCKS.YELLOW_WOOL,
+  black_wool: BLOCKS.BLACK_WOOL,
+  black: BLOCKS.BLACK_WOOL,
+  orange_wool: BLOCKS.ORANGE_WOOL,
+  orange: BLOCKS.ORANGE_WOOL,
+  purple_wool: BLOCKS.PURPLE_WOOL,
+  purple: BLOCKS.PURPLE_WOOL,
+  pink_wool: BLOCKS.PINK_WOOL,
+  pink: BLOCKS.PINK_WOOL,
+  cyan_wool: BLOCKS.CYAN_WOOL,
+  cyan: BLOCKS.CYAN_WOOL,
+  gray_wool: BLOCKS.GRAY_WOOL,
+  gray: BLOCKS.GRAY_WOOL,
+  grey: BLOCKS.GRAY_WOOL,
+  lime_wool: BLOCKS.LIME_WOOL,
+  lime: BLOCKS.LIME_WOOL,
+  brown_wool: BLOCKS.BROWN_WOOL,
+  brown: BLOCKS.BROWN_WOOL,
+
+  // Utility & Misc
+  water: BLOCKS.WATER,
+  lava: BLOCKS.LAVA,
+  ice: BLOCKS.ICE,
+  snow: BLOCKS.SNOW_BLOCK,
+  snow_block: BLOCKS.SNOW_BLOCK,
+  tnt: BLOCKS.TNT,
+  bookshelf: BLOCKS.BOOKSHELF,
+  bookshelves: BLOCKS.BOOKSHELF,
+  chest: BLOCKS.CHEST,
+  crafting_table: BLOCKS.CRAFTING_TABLE,
+  furnace: BLOCKS.FURNACE,
+  iron_bars: BLOCKS.IRON_BARS,
+  fence: BLOCKS.OAK_FENCE,
+  air: BLOCKS.AIR,
+};
+
 /**
  * Helper to resolve block ID from name (string) or number.
  */
@@ -9,7 +132,12 @@ export function resolveBlockId(blockInput) {
   if (typeof blockInput === 'number') return blockInput;
   if (!blockInput || typeof blockInput !== 'string') return BLOCKS.STONE;
 
-  const upper = blockInput.toUpperCase().replace(/[\s-]/g, '_');
+  const normalized = blockInput.toLowerCase().trim().replace(/[\s-]/g, '_');
+  if (NATURAL_BLOCK_ALIASES[normalized] !== undefined) {
+    return NATURAL_BLOCK_ALIASES[normalized];
+  }
+
+  const upper = normalized.toUpperCase();
   if (BLOCKS[upper] !== undefined) return BLOCKS[upper];
 
   // Try matching with suffix
@@ -18,7 +146,7 @@ export function resolveBlockId(blockInput) {
 
   // Match case-insensitively across BLOCKS keys
   for (const [k, v] of Object.entries(BLOCKS)) {
-    if (k.toLowerCase() === blockInput.toLowerCase()) return v;
+    if (k.toLowerCase() === normalized) return v;
   }
 
   return BLOCKS.STONE;
@@ -874,12 +1002,17 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
       required: ['x', 'y', 'z', 'block'],
     },
     execute: async ({ x, y, z, block }) => {
-      const bx = Math.round(x);
-      const by = Math.round(y);
-      const bz = Math.round(z);
+      const bx = Math.round(Number(x));
+      const by = Math.round(Number(y));
+      const bz = Math.round(Number(z));
       const blockId = resolveBlockId(block);
 
       ensureChunksLoaded(bx - 1, bx + 1, bz - 1, bz + 1);
+      const cx = Math.floor(bx / 16);
+      const cz = Math.floor(bz / 16);
+      let chunk = game.chunkManager.getChunk(cx, cz);
+      if (!chunk) chunk = game.chunkManager.loadChunk(cx, cz);
+
       const oldId = game.chunkManager.getBlock(bx, by, bz);
       const placed = game.chunkManager.setBlock(bx, by, bz, blockId);
 
@@ -1041,18 +1174,18 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
   await modelContext.registerTool({
     name: 'build_shape',
     title: 'Build Geometric 3D Shape',
-    description: 'Procedurally generates geometric 3D shapes: box, sphere, cylinder, wall, pyramid, or circle (solid or hollow).',
+    description: 'Procedurally generates geometric 3D shapes: box, cube, sphere, dome, cylinder, column, wall, pyramid, circle, ring, disc, platform, oval, or ellipsoid (solid or hollow).',
     inputSchema: {
       type: 'object',
       properties: {
         shape: {
           type: 'string',
-          enum: ['box', 'sphere', 'cylinder', 'wall', 'pyramid', 'circle', 'oval', 'ellipsoid'],
+          enum: ['box', 'cube', 'sphere', 'dome', 'cylinder', 'column', 'pillar', 'wall', 'pyramid', 'circle', 'ring', 'disc', 'platform', 'oval', 'ellipsoid'],
           description: 'Type of 3D geometry.',
         },
         block: {
           type: 'string',
-          description: 'Block material (e.g. "stone_bricks", "gold_block", "glass", "white_wool").',
+          description: 'Block material (e.g. "stone_bricks", "gold_block", "glass", "white_wool", "wood").',
         },
         origin: {
           type: 'object',
@@ -1061,12 +1194,12 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
             y: { type: 'number' },
             z: { type: 'number' },
           },
-          description: 'Center origin coordinate. Defaults to 5 blocks in front of player.',
+          description: 'Center origin coordinate. Defaults to resting on the terrain in front of the player.',
         },
-        width: { type: 'number', description: 'Width/radius X.' },
-        height: { type: 'number', description: 'Height Y.' },
-        depth: { type: 'number', description: 'Depth Z.' },
-        radius: { type: 'number', description: 'Radius for spheres, cylinders, circles.' },
+        width: { type: 'number', description: 'Width / length X (default 5).' },
+        height: { type: 'number', description: 'Height Y (default 4).' },
+        depth: { type: 'number', description: 'Depth / thickness Z (default 5).' },
+        radius: { type: 'number', description: 'Radius for spheres, domes, cylinders, circles (default 3).' },
         hollow: {
           type: 'boolean',
           default: false,
@@ -1075,107 +1208,180 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
         animated: {
           type: 'boolean',
           default: false,
-          description: 'If true, places blocks progressively over time with real-time audio/visuals.',
+          description: 'If true, places blocks progressively over time with audio.',
         },
         delayMs: {
           type: 'number',
           default: 15,
-          description: 'Delay between block placements in milliseconds if animated is true (default 15ms).',
+          description: 'Delay between block batches in milliseconds if animated is true.',
         },
       },
       required: ['shape', 'block'],
     },
     execute: async ({ shape, block, origin, width = 5, height = 4, depth = 5, radius = 3, hollow = false, animated = false, delayMs = 15 }) => {
       const blockId = resolveBlockId(block);
+      const normShape = String(shape || 'box').toLowerCase().trim().replace(/[\s-]/g, '_');
 
-      let ox = origin?.x, oy = origin?.y, oz = origin?.z;
-      if (ox === undefined || oy === undefined || oz === undefined) {
+      const w = Math.max(1, Math.round(Number(width) || 5));
+      const h = Math.max(1, Math.round(Number(height) || 4));
+      const d = Math.max(1, Math.round(Number(depth) || 5));
+      const r = Math.max(1, Math.round(Number(radius) || Math.floor(w / 2) || 3));
+      const isHollow = hollow === true || hollow === 'true';
+
+      let ox = origin?.x !== undefined ? Math.round(Number(origin.x)) : undefined;
+      let oy = origin?.y !== undefined ? Math.round(Number(origin.y)) : undefined;
+      let oz = origin?.z !== undefined ? Math.round(Number(origin.z)) : undefined;
+
+      if (ox === undefined || oz === undefined) {
         const fwd = game.cameraController.getForwardVector();
-        ox = Math.round(game.player.physics.position.x + fwd.x * 6);
-        oz = Math.round(game.player.physics.position.z + fwd.z * 6);
-        oy = Math.max(game.worldGen.getHeight(ox, oz), Math.round(game.player.physics.position.y));
+        const dist = (normShape === 'sphere' || normShape === 'dome') ? r + 5 : Math.max(w, d) + 4;
+        ox = Math.round(game.player.physics.position.x + fwd.x * dist);
+        oz = Math.round(game.player.physics.position.z + fwd.z * dist);
+      }
+
+      const groundH = Math.max(1, game.worldGen.getHeight(ox, oz));
+
+      if (oy === undefined) {
+        if (normShape === 'sphere') {
+          // Center sphere so that bottom rests at ground height
+          oy = groundH + r;
+        } else {
+          // Base rests on terrain surface
+          oy = groundH;
+        }
       }
 
       const batch = [];
       const undoBatch = [];
 
-      if (shape === 'box') {
-        const hw = Math.floor(width / 2);
-        const hd = Math.floor(depth / 2);
-        for (let y = 0; y < height; y++) {
+      // 1. Box / Cube / Platform
+      if (normShape === 'box' || normShape === 'cube' || normShape === 'platform') {
+        const boxH = normShape === 'platform' ? 1 : (normShape === 'cube' ? w : h);
+        const boxD = normShape === 'cube' ? w : d;
+        const hw = Math.floor(w / 2);
+        const hd = Math.floor(boxD / 2);
+
+        for (let y = 0; y < boxH; y++) {
           for (let dz = -hd; dz <= hd; dz++) {
             for (let dx = -hw; dx <= hw; dx++) {
-              const isPerimeter = Math.abs(dx) === hw || Math.abs(dz) === hd || y === 0 || y === height - 1;
-              if (!hollow || isPerimeter) {
+              const isPerimeter = Math.abs(dx) === hw || Math.abs(dz) === hd || y === 0 || y === boxH - 1;
+              if (!isHollow || isPerimeter) {
                 batch.push({ x: ox + dx, y: oy + y, z: oz + dz, blockId });
               }
             }
           }
         }
-      } else if (shape === 'sphere') {
-        const r = Math.round(radius || 3);
+      }
+      // 2. Wall
+      else if (normShape === 'wall') {
+        const wallLen = Math.max(1, Math.round(Number(width || 8)));
+        const wallH = Math.max(1, Math.round(Number(height || 4)));
+        const wallThick = Math.max(1, Math.round(Number(depth || 1)));
+        const halfL = Math.floor(wallLen / 2);
+        const halfT = Math.floor(wallThick / 2);
+
+        const yawDeg = ((THREE.MathUtils.radToDeg(game.cameraController.yaw) % 360) + 360) % 360;
+        const isEastWest = (yawDeg >= 45 && yawDeg < 135) || (yawDeg >= 225 && yawDeg < 315);
+
+        for (let y = 0; y < wallH; y++) {
+          for (let dl = -halfL; dl <= halfL; dl++) {
+            for (let dt = -halfT; dt <= halfT; dt++) {
+              const wx = isEastWest ? ox + dt : ox + dl;
+              const wz = isEastWest ? oz + dl : oz + dt;
+              const isPerimeter = Math.abs(dl) === halfL || y === 0 || y === wallH - 1 || Math.abs(dt) === halfT;
+              if (!isHollow || isPerimeter) {
+                batch.push({ x: wx, y: oy + y, z: wz, blockId });
+              }
+            }
+          }
+        }
+      }
+      // 3. Sphere
+      else if (normShape === 'sphere') {
         for (let dy = -r; dy <= r; dy++) {
           for (let dz = -r; dz <= r; dz++) {
             for (let dx = -r; dx <= r; dx++) {
               const dSq = dx * dx + dy * dy + dz * dz;
               const inSphere = dSq <= (r + 0.5) * (r + 0.5);
-              const onSurface = inSphere && dSq >= (r - 0.7) * (r - 0.7);
-              if (!hollow ? inSphere : onSurface) {
+              const onSurface = inSphere && dSq >= (r - 0.75) * (r - 0.75);
+              if (!isHollow ? inSphere : onSurface) {
                 batch.push({ x: ox + dx, y: oy + dy, z: oz + dz, blockId });
               }
             }
           }
         }
-      } else if (shape === 'cylinder') {
-        const r = Math.round(radius || 3);
-        for (let y = 0; y < height; y++) {
+      }
+      // 4. Dome (Upper Hemisphere)
+      else if (normShape === 'dome') {
+        for (let dy = 0; dy <= r; dy++) {
+          for (let dz = -r; dz <= r; dz++) {
+            for (let dx = -r; dx <= r; dx++) {
+              const dSq = dx * dx + dy * dy + dz * dz;
+              const inDome = dSq <= (r + 0.5) * (r + 0.5);
+              const onSurface = inDome && dSq >= (r - 0.75) * (r - 0.75);
+              if (!isHollow ? inDome : onSurface) {
+                batch.push({ x: ox + dx, y: oy + dy, z: oz + dz, blockId });
+              }
+            }
+          }
+        }
+      }
+      // 5. Cylinder / Column / Pillar
+      else if (normShape === 'cylinder' || normShape === 'column' || normShape === 'pillar') {
+        for (let y = 0; y < h; y++) {
           for (let dz = -r; dz <= r; dz++) {
             for (let dx = -r; dx <= r; dx++) {
               const dSq = dx * dx + dz * dz;
               const inCylinder = dSq <= (r + 0.4) * (r + 0.4);
-              const onSurface = inCylinder && (dSq >= (r - 0.8) * (r - 0.8) || y === 0 || y === height - 1);
-              if (!hollow ? inCylinder : onSurface) {
+              const onSurface = inCylinder && (dSq >= (r - 0.8) * (r - 0.8) || y === 0 || y === h - 1);
+              if (!isHollow ? inCylinder : onSurface) {
                 batch.push({ x: ox + dx, y: oy + y, z: oz + dz, blockId });
               }
             }
           }
         }
-      } else if (shape === 'pyramid') {
-        const base = Math.max(2, Math.floor((width || 7) / 2));
+      }
+      // 6. Pyramid
+      else if (normShape === 'pyramid') {
+        const base = Math.max(2, Math.floor(w / 2));
         for (let step = 0; step <= base; step++) {
           const curR = base - step;
           for (let dz = -curR; dz <= curR; dz++) {
             for (let dx = -curR; dx <= curR; dx++) {
               const isBorder = Math.abs(dx) === curR || Math.abs(dz) === curR || step === base;
-              if (!hollow || isBorder) {
+              if (!isHollow || isBorder) {
                 batch.push({ x: ox + dx, y: oy + step, z: oz + dz, blockId });
               }
             }
           }
         }
-      } else if (shape === 'circle') {
-        const r = Math.round(radius || 4);
+      }
+      // 7. Circle / Ring / Disc
+      else if (normShape === 'circle' || normShape === 'ring' || normShape === 'disc') {
         for (let dz = -r; dz <= r; dz++) {
           for (let dx = -r; dx <= r; dx++) {
             const dSq = dx * dx + dz * dz;
             const inCircle = dSq <= (r + 0.5) * (r + 0.5);
-            const onRing = inCircle && dSq >= (r - 0.8) * (r - 0.8);
-            if (!hollow ? inCircle : onRing) {
+            const onRing = inCircle && dSq >= (r - 0.85) * (r - 0.85);
+            const shouldPlace = (normShape === 'ring' || isHollow) ? onRing : inCircle;
+            if (shouldPlace) {
               batch.push({ x: ox + dx, y: oy, z: oz + dz, blockId });
             }
           }
         }
-      } else if (shape === 'oval' || shape === 'ellipsoid') {
-        const rx = Math.max(2, Math.round((width || 14) / 2));
-        const ry = Math.max(2, Math.round((height || 8) / 2));
-        const rz = Math.max(2, Math.round((depth || 14) / 2));
+      }
+      // 8. Oval / Ellipsoid
+      else if (normShape === 'oval' || normShape === 'ellipsoid') {
+        const rx = Math.max(2, Math.round(w / 2));
+        const ry = Math.max(2, Math.round(h / 2));
+        const rz = Math.max(2, Math.round(d / 2));
         for (let dy = -ry; dy <= ry; dy++) {
           for (let dz = -rz; dz <= rz; dz++) {
             for (let dx = -rx; dx <= rx; dx++) {
               const dSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) + (dz * dz) / (rz * rz);
               const inOval = dSq <= 1.0;
               const onSurface = inOval && dSq >= 0.72;
-              if (!hollow ? inOval : onSurface) {
+              if (!isHollow ? inOval : onSurface) {
                 batch.push({ x: ox + dx, y: oy + dy, z: oz + dz, blockId });
               }
             }
@@ -1183,38 +1389,66 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
         }
       }
 
-      // Record undo and load chunks
+      // Preload chunks and capture undo data
       let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
       for (const b of batch) {
         minX = Math.min(minX, b.x);
         maxX = Math.max(maxX, b.x);
         minZ = Math.min(minZ, b.z);
         maxZ = Math.max(maxZ, b.z);
-        const oldId = game.chunkManager.getBlock(b.x, b.y, b.z);
-        undoBatch.push({ x: b.x, y: b.y, z: b.z, oldBlockId: oldId, newBlockId: b.blockId });
       }
 
-      ensureChunksLoaded(minX, maxX, minZ, maxZ);
+      if (batch.length > 0) {
+        ensureChunksLoaded(minX, maxX, minZ, maxZ);
+        for (const b of batch) {
+          const oldId = game.chunkManager.getBlock(b.x, b.y, b.z);
+          undoBatch.push({ x: b.x, y: b.y, z: b.z, oldBlockId: oldId, newBlockId: b.blockId });
+        }
+      }
 
+      // Smooth animated placement with sound effects without freezing renderer
       if (animated && batch.length > 0) {
-        const stepDelay = Math.max(5, Math.min(delayMs || 15, 500));
+        const stepDelay = Math.max(5, Math.min(Number(delayMs) || 15, 500));
         let count = 0;
+        const affectedChunks = new Set();
+
         for (const item of batch) {
-          game.chunkManager.setBlock(item.x, item.y, item.z, item.blockId);
-          if (count % 3 === 0) {
+          const cx = Math.floor(item.x / 16);
+          const cz = Math.floor(item.z / 16);
+          let chunk = game.chunkManager.getChunk(cx, cz);
+          if (!chunk) chunk = game.chunkManager.loadChunk(cx, cz);
+          if (chunk) {
+            const lx = ((item.x % 16) + 16) % 16;
+            const lz = ((item.z % 16) + 16) % 16;
+            chunk.setBlock(lx, item.y, lz, item.blockId);
+            affectedChunks.add(chunk);
+          }
+
+          if (count % 4 === 0) {
             const def = getBlockDef(item.blockId);
             sound.playBlockPlace(def.sound || 'stone');
           }
+
           count++;
-          if (stepDelay > 0) {
+          if (stepDelay > 0 && count % 2 === 0) {
+            // Periodic mesh refresh for visible progress without locking main thread
+            if (count % 16 === 0) {
+              for (const c of affectedChunks) game.chunkManager.rebuildChunkMesh(c);
+            }
             await new Promise((resolve) => setTimeout(resolve, stepDelay));
           }
         }
+
+        // Final full mesh update for all affected chunks
+        for (const c of affectedChunks) {
+          game.chunkManager.rebuildChunkMesh(c);
+        }
+
         pushUndoBatch(undoBatch);
         game.broadcastUI();
         return {
           success: true,
-          shape,
+          shape: normShape,
           block: getBlockName(blockId),
           placedCount: batch.length,
           origin: { x: ox, y: oy, z: oz },
@@ -1222,6 +1456,7 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
         };
       }
 
+      // Instant batch placement
       game.chunkManager.setBlocksBatch(batch);
       pushUndoBatch(undoBatch);
       sound.playBlockPlace('stone');
@@ -1229,7 +1464,7 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
 
       return {
         success: true,
-        shape,
+        shape: normShape,
         block: getBlockName(blockId),
         placedCount: batch.length,
         origin: { x: ox, y: oy, z: oz },
@@ -1241,25 +1476,39 @@ export async function registerMinecraftWebMCPTools(modelContext, game) {
   await modelContext.registerTool({
     name: 'build_structure',
     title: 'Build Pre-designed Structure',
-    description: 'Constructs an architectural building: "cottage" (furnished cozy wooden cottage), "watchtower" (medieval stone battlements tower), or "pyramid" (ancient desert tomb).',
+    description: 'Constructs an architectural building: "cottage" (furnished cozy wooden cottage), "castle" (medieval stone fortress with towers), "watchtower" (stone battlements tower), "pyramid" (ancient desert tomb), "fountain" (water fountain), or "portal" (nether portal).',
     inputSchema: {
       type: 'object',
       properties: {
         type: {
           type: 'string',
-          enum: ['cottage', 'watchtower', 'pyramid'],
-          description: 'Structure type.',
+          enum: ['cottage', 'house', 'watchtower', 'tower', 'pyramid', 'castle', 'fortress', 'fountain', 'portal', 'nether_portal'],
+          description: 'Structure type to construct.',
+        },
+        origin: {
+          type: 'object',
+          properties: {
+            x: { type: 'number' },
+            y: { type: 'number' },
+            z: { type: 'number' },
+          },
+          description: 'Optional world coordinate where to build the structure.',
         },
         instant: {
           type: 'boolean',
-          default: false,
-          description: 'If true, builds instantly without progressive construction animation.',
+          default: true,
+          description: 'If true, builds instantly. If false, builds progressively with construction sounds.',
         },
       },
       required: ['type'],
     },
-    execute: async ({ type, instant = false }) => {
-      const result = game.buildStructure(type.toLowerCase(), { instant });
+    execute: async ({ type, origin, pos, instant = true }) => {
+      const targetPos = origin || pos;
+      const result = game.buildStructure(type.toLowerCase(), {
+        pos: targetPos,
+        instant: instant !== false,
+        adjustCamera: false,
+      });
       return {
         success: true,
         structure: type,
