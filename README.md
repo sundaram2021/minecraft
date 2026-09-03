@@ -3,7 +3,6 @@
 > **Submission for the [WebMCP Devpost Hackathon](https://webmcp.devpost.com)**  
 > *A 3D voxel sandbox built with Three.js & React, powered natively in-browser by the W3C Web Model Context Protocol (WebMCP).*
 
----
 
 ## Summary
 
@@ -11,7 +10,55 @@
 
 By embedding the **Web Model Context Protocol (WebMCP)** directly into the browser client, this project exposes **23 standard-compliant tools** on `document.modelContext` and `navigator.modelContext`, as well as a standard **MCP JSON-RPC 2.0 `postMessage` bridge**. Players no longer play alone or fumble with complex coordinate math: an AI agent co-pilot can inspect voxel terrain, architect complex structures with progressive block-by-block animations, manage player inventories, terraform landscapes, and respond to natural language commands in real time.
 
+## Web MCP Inspector Result and Prompt
+```
+User prompt: "Check my current location and inventory, set the game mode to creative, set the weather to clear and time to day, clear a space in front of me, and build a castle."
+AI calling tool "get_player_state" with {}
+Tool "get_player_state" result: {"success":true,"position":{"x":11.47,"y":69,"z":17.9},"facing":"South","yawDegrees":208.4,"pitchDegrees":-21.3,"gameMode":"creative","isFlying":false,"onGround":true,"inWater":false,"health":20,"maxHealth":20,"hunger":20,"biome":"Forest","timeOfDay":0.27644362450005017,"heldItem":{"id":5,"name":"oak_log","count":16}}
+AI calling tool "list_inventory" with {}
+Tool "list_inventory" result: {"selectedHotbarIndex":0,"totalItems":9,"items":[{"slotIndex":0,"isHotbar":true,"id":5,"name":"oak_log","count":16},{"slotIndex":1,"isHotbar":true,"id":4,"name":"cobblestone","count":32},{"slotIndex":2,"isHotbar":true,"id":22,"name":"torch","count":16},{"slotIndex":3,"isHotbar":true,"id":"wooden_pickaxe","name":"wooden_pickaxe","count":1,"durability":59},{"slotIndex":4,"isHotbar":true,"id":"wooden_sword","name":"wooden_sword","count":1,"durability":59},{"slotIndex":5,"isHotbar":true,"id":"apple","name":"apple","count":8},{"slotIndex":6,"isHotbar":true,"id":"shears","name":"shears","count":1,"durability":238},{"slotIndex":7,"isHotbar":true,"id":"wooden_hoe","name":"wooden_hoe","count":1,"durability":59},{"slotIndex":8,"isHotbar":true,"id":"wheat","name":"wheat","count":5}]}
+AI calling tool "set_game_mode" with {"mode":"creative"}
+Tool "set_game_mode" result: {"success":true,"mode":"creative","message":"Switched to Creative Mode: Flying and instant block mining unlocked."}
+AI calling tool "set_weather" with {"weather":"clear"}
+Tool "set_weather" result: {"success":true,"weather":"clear"}
+AI calling tool "set_time_of_day" with {"time":"day"}
+Tool "set_time_of_day" result: {"success":true,"timeOfDay":0.25}
+AI calling tool "clear_area" with {"x2":35,"y2":95,"z2":65,"z1":22,"y1":69,"x1":-10}
+Tool "clear_area" result: {"success":true,"clearedCount":1133,"bounds":{"minX":-10,"maxX":35,"minY":69,"maxY":95,"minZ":22,"maxZ":65}}
+AI calling tool "build_structure" with {"origin":{"y":69,"z":25,"x":11},"type":"castle","instant":true}
+Tool "build_structure" result: {"success":true,"structure":"castle","blocksPlaced":671,"location":{"x":11,"y":69,"z":25}}
+AI result: Here are the details and actions taken:
+
+### 📍 Location & Inventory Status
+* **Location:** `(11.5, 69.0, 17.9)` in a **Forest** biome facing **South**.
+* **Inventory Hotbar:**
+1. Oak Logs ×16
+2. Cobblestone ×32
+3. Torches ×16
+4. Wooden Pickaxe
+5. Wooden Sword
+6. Apples ×8
+7. Shears
+8. Wooden Hoe
+9. Wheat ×5
+
 ---
+
+### ⚙️ Environment & Settings Updated
+* **Game Mode:** Set to **Creative Mode** (flying & instant mining enabled).
+* **Weather:** Changed to **Clear**.
+* **Time:** Set to **Day** (sunrise/morning).
+
+---
+
+### 🏰 Space Cleared & Castle Built
+* **Cleared Area:** Prepared an open volume directly in front of you `(X: -10 to 35, Y: 69 to 95, Z: 22 to 65)`.
+* **Castle Construction:** Constructed a medieval stone fortress with towers at `(11, 69, 25)`.
+
+```
+
+## Demo 
+https://www.loom.com/share/ddb2af9b773448e5a8924102c4e1e734
 
 ## Why Your Use Case Is a Strong Fit for WebMCP
 
@@ -27,7 +74,6 @@ By embedding the **Web Model Context Protocol (WebMCP)** directly into the brows
 4. **Zero-Hallucination Voxel Manipulation**  
    Rather than guessing where blocks are, the agent utilizes structured JSON Schemas with typed inputs and annotations (`readOnlyHint`, coordinate bounds). The game engine validates every action, loads necessary chunks on demand, and returns structured feedback to the model context.
 
----
 
 ## How It Creates a Better User Experience
 
@@ -37,7 +83,6 @@ By embedding the **Web Model Context Protocol (WebMCP)** directly into the brows
 - **Zero Configuration**: No plugins, command-line flags, or server configurations required. Anyone can open the web link, click start, and immediately interact with an agent-ready 3D sandbox.
 - **Shared Context via Crosshairs**: Tools like `get_target_block` allow human players to simply aim their crosshair at a surface and say *"Carve a doorway right here"*, creating intuitive multimodal cooperation.
 
----
 
 ## What People and Agents Can Do Together That Was Difficult or Impossible Before
 
@@ -49,7 +94,6 @@ By embedding the **Web Model Context Protocol (WebMCP)** directly into the brows
 | **Dynamic Scenario & Dungeon Mastering** | Difficult to orchestrate live custom events without complex command blocks. | Agents can act as live game masters: spawning mob encounters, setting stormy weather, and provisioning gear dynamically. |
 | **Universal Agent Compatibility** | Proprietary APIs or custom websockets per game. | Any standard MCP / WebMCP client, Chrome AI extension, or postMessage agent can connect out-of-the-box. |
 
----
 
 ## Briefly Explain How You Implemented WebMCP
 
@@ -98,13 +142,12 @@ Tools are registered into five functional categories:
    - `build_structure`: Architectural constructor for complex buildings (`cottage`, `castle`, `watchtower`, `pyramid`, `fountain`, `portal`).
    - `undo_last_build`: 20-step undo stack reverting previous block batches.
 
----
 
 ## Setup Instructions
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (version 18.0 or higher recommended)
-- `npm` (or `pnpm` / `yarn`)
+- `pnpm`
 
 ### Installation
 
@@ -116,14 +159,12 @@ Tools are registered into five functional categories:
 
 2. **Install dependencies:**
    ```bash
-   npm install
-   # or with pnpm
    pnpm install
    ```
 
 3. **Start the development server:**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 4. **Launch the game:**
@@ -133,7 +174,6 @@ Tools are registered into five functional categories:
    ```
    Click anywhere on the splash screen to enter pointer-lock mode and begin playing.
 
----
 
 ### Testing WebMCP Tools in the Browser
 
@@ -198,14 +238,12 @@ window.postMessage({
 }, '*');
 ```
 
----
-
 ### Production Build
 
 To build the production bundle:
 ```bash
-npm run build
-npm run preview
+pnpm run build
+pnpm run preview
 ```
 
 ---
