@@ -1,0 +1,36 @@
+src/game/webmcp/MinecraftWebMCPTools.js
+  s_129edfe7b45e38::t_b8cbbe4c6ac106 1295-1296,1310-1311,1409,1411,1413-1414,1416-1427,1431,1433-1437,1441-1444
+  s_129edfe7b45e38::t_4492be22db44f6 1507
+  s_129edfe7b45e38::t_4275bf9445f770 1292-1294
+  s_129edfe7b45e38::t_0a7f9001925a57 1297-1299
+  s_129edfe7b45e38::t_1e33a92a403b4a 1307-1309
+  s_129edfe7b45e38::t_dc967797d7292b 1312-1314
+  s_129edfe7b45e38::t_f6a9ab104b4c8b 1445-1446
+  s_129edfe7b45e38::t_1c271324f341bf 1505-1506
+  s_129edfe7b45e38::t_ae84c372a1c1f5 1508-1510
+src/game/core/Game.js
+  s_129edfe7b45e38::t_e978cb6e12cbd2 650
+  s_129edfe7b45e38::t_ed7dcd6d611347 621
+src/game/webmcp/WebMCPPolyfill.js
+  s_129edfe7b45e38::t_60ec9013ca66e1 333-366,369-376
+  s_129edfe7b45e38::t_c53845b84297da 367-368,389
+  s_129edfe7b45e38::t_7c128a1cb800d0 330-332
+  s_129edfe7b45e38::t_7f9f0ade0f53aa 377-379,386-388
+  s_129edfe7b45e38::t_be0189460e8ed3 390-392
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e926aeb18ebf70b73a1b50cf636f59a7ca8a1dcd",
+  "prompts": {},
+  "sessions": {
+    "s_129edfe7b45e38": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f9a22879bffeDM50No45QBusX3",
+        "model": "unknown"
+      },
+      "human_author": "Sundaram Kumar Jha <jhasundaram@outlook.com>"
+    }
+  }
+}
